@@ -3,49 +3,70 @@ import type { Route } from "./+types/dashboard";
 import { requireUser } from "~/lib/auth/session.server";
 import { Layout } from "~/components/Layout";
 import { t } from "~/lib/i18n/i18n";
+import { prisma } from "~/lib/db/client";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await requireUser(request);
-  
-  // Simulate document stats - in production, fetch from database
+
+  // Get real document stats from database
+  const [totalDocuments, inProgress, completed] = await Promise.all([
+    prisma.document.count({ where: { userId: user.id } }),
+    prisma.document.count({
+      where: {
+        userId: user.id,
+        status: { in: ["PENDING", "PROCESSING"] },
+      },
+    }),
+    prisma.document.count({
+      where: {
+        userId: user.id,
+        status: "COMPLETED",
+      },
+    }),
+  ]);
+
   const stats = {
-    totalDocuments: 12,
-    inProgress: 2,
-    completed: 10,
+    totalDocuments,
+    inProgress,
+    completed,
   };
 
-  // Simulate recent documents - in production, fetch from database
-  const recentDocuments = [
-    {
-      id: "1",
-      name: "Medical Report.pdf",
-      status: "completed" as const,
-      createdAt: "2024-02-04T09:30:00Z",
-      mode: "translate" as const,
-      sourceLanguage: "en",
-      targetLanguage: "ru",
-    },
-    {
-      id: "2", 
-      name: "Lab Results.docx",
-      status: "processing" as const,
-      createdAt: "2024-02-04T10:15:00Z",
-      mode: "summarize" as const,
-      sourceLanguage: "ru",
-      targetLanguage: "en",
-    },
-    {
-      id: "3",
-      name: "Prescription.jpg",
-      status: "completed" as const,
-      createdAt: "2024-02-03T16:45:00Z",
-      mode: "ocr" as const,
-      sourceLanguage: "he",
-      targetLanguage: "en",
-    },
-  ];
+  // Get recent documents from database
+  const recentDocs = await prisma.document.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" },
+    take: 5,
+  });
+
+  const recentDocuments = recentDocs.map((doc) => ({
+    id: doc.id,
+    name: doc.originalName,
+    status: doc.status.toLowerCase() as
+      | "completed"
+      | "processing"
+      | "pending"
+      | "failed",
+    createdAt: doc.createdAt.toISOString(),
+    mode: mapProcessingMode(doc.mode),
+    sourceLanguage: doc.sourceLanguage,
+    targetLanguage: doc.targetLanguage || "",
+  }));
 
   return { user, stats, recentDocuments };
+}
+
+// Helper function to map database enum to frontend types
+function mapProcessingMode(mode: string) {
+  switch (mode) {
+    case "OCR_ONLY":
+      return "ocr" as const;
+    case "TRANSLATE_ONLY":
+      return "translate" as const;
+    case "OCR_AND_TRANSLATE":
+      return "summarize" as const; // Using "summarize" as the closest match for combined processing
+    default:
+      return "ocr" as const;
+  }
 }
 
 export default function Dashboard() {
@@ -68,9 +89,19 @@ export default function Dashboard() {
           <div className="bg-white overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                <div className="shrink-0">
+                  <svg
+                    className="h-6 w-6 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
                   </svg>
                 </div>
                 <div className="ml-5 w-0 flex-1">
@@ -90,9 +121,19 @@ export default function Dashboard() {
           <div className="bg-white overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <svg className="h-6 w-6 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <div className="shrink-0">
+                  <svg
+                    className="h-6 w-6 text-orange-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                 </div>
                 <div className="ml-5 w-0 flex-1">
@@ -112,9 +153,19 @@ export default function Dashboard() {
           <div className="bg-white overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <svg className="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <div className="shrink-0">
+                  <svg
+                    className="h-6 w-6 text-green-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                 </div>
                 <div className="ml-5 w-0 flex-1">
@@ -134,12 +185,22 @@ export default function Dashboard() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 mb-8">
-          <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg">
+          <div className="bg-linear-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg">
             <div className="p-6">
               <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <svg className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                <div className="shrink-0">
+                  <svg
+                    className="h-8 w-8 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                    />
                   </svg>
                 </div>
                 <div className="ml-5 w-0 flex-1">
@@ -163,9 +224,19 @@ export default function Dashboard() {
           <div className="bg-white border-2 border-gray-200 rounded-lg shadow">
             <div className="p-6">
               <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <svg className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                <div className="shrink-0">
+                  <svg
+                    className="h-8 w-8 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
                   </svg>
                 </div>
                 <div className="ml-5 w-0 flex-1">
@@ -193,32 +264,51 @@ export default function Dashboard() {
             <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
               {t("dashboard.recentDocuments")}
             </h3>
-            
+
             {recentDocuments.length > 0 ? (
               <div className="space-y-3">
                 {recentDocuments.map((doc) => (
-                  <div key={doc.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div
+                    key={doc.id}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  >
                     <div className="flex items-center space-x-3">
-                      <div className="flex-shrink-0">
-                        <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      <div className="shrink-0">
+                        <svg
+                          className="h-6 w-6 text-gray-400"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                          />
                         </svg>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{doc.name}</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          {doc.name}
+                        </p>
                         <p className="text-xs text-gray-500">
-                          {t(`documents.mode.${doc.mode}`)} • {t(`languages.${doc.sourceLanguage}`)} → {t(`languages.${doc.targetLanguage}`)}
+                          {t(`documents.mode.${doc.mode}`)} •{" "}
+                          {t(`languages.${doc.sourceLanguage}`)} →{" "}
+                          {t(`languages.${doc.targetLanguage}`)}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        doc.status === "completed" 
-                          ? "bg-green-100 text-green-800"
-                          : doc.status === "processing"
-                          ? "bg-orange-100 text-orange-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}>
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          doc.status === "completed"
+                            ? "bg-green-100 text-green-800"
+                            : doc.status === "processing"
+                              ? "bg-orange-100 text-orange-800"
+                              : "bg-gray-100 text-gray-800"
+                        }`}
+                      >
                         {t(`documents.status.${doc.status}`)}
                       </span>
                       <span className="text-xs text-gray-500">
@@ -230,8 +320,18 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="text-center py-6">
-                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                <svg
+                  className="mx-auto h-12 w-12 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
                 </svg>
                 <h3 className="mt-2 text-sm font-medium text-gray-900">
                   {t("dashboard.noDocuments")}
@@ -244,8 +344,18 @@ export default function Dashboard() {
                     to="/documents/upload"
                     className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   >
-                    <svg className="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    <svg
+                      className="-ml-1 mr-2 h-5 w-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                      />
                     </svg>
                     {t("dashboard.uploadNew")}
                   </Link>

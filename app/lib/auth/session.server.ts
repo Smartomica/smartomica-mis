@@ -1,33 +1,20 @@
 import { createCookieSessionStorage, redirect } from "react-router";
 import { SESSION_SECRET } from "~/env.server";
+import { prisma } from "~/lib/db/client";
 
 export interface User {
   id: string;
   email: string;
   name: string;
   role: "admin" | "user";
+  tokensUsed: number;
+  tokensRemaining: number;
 }
 
-// Hard-coded accounts - replace with real OAuth later
-const USERS: User[] = [
-  {
-    id: "1",
-    email: "admin@smartomica.org",
-    name: "Admin User",
-    role: "admin",
-  },
-  {
-    id: "2", 
-    email: "user@smartomica.org",
-    name: "Regular User",
-    role: "user",
-  },
-];
-
-// Hard-coded passwords - replace with OAuth
-const PASSWORDS = {
+// Hard-coded passwords for demo accounts - replace with OAuth later
+const DEMO_PASSWORDS = {
   "admin@smartomica.org": "admin123",
-  "user@smartomica.org": "user123",
+  "demo@smartomica.org": "demo123", 
 };
 
 export const sessionStorage = createCookieSessionStorage({
@@ -63,7 +50,28 @@ export async function getUser(request: Request): Promise<User | null> {
     return null;
   }
   
-  return USERS.find(user => user.id === userId) || null;
+  const dbUser = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!dbUser) {
+    return null;
+  }
+
+  // Update last login time
+  await prisma.user.update({
+    where: { id: userId },
+    data: { lastLoginAt: new Date() },
+  });
+
+  return {
+    id: dbUser.id,
+    email: dbUser.email,
+    name: dbUser.name || "",
+    role: dbUser.role.toLowerCase() as "admin" | "user",
+    tokensUsed: dbUser.tokensUsed,
+    tokensRemaining: dbUser.tokensRemaining,
+  };
 }
 
 export async function requireUser(request: Request): Promise<User> {
@@ -87,12 +95,34 @@ export async function logout(request: Request) {
 }
 
 export async function login(email: string, password: string): Promise<User | null> {
-  // Simple authentication - replace with OAuth
-  const expectedPassword = PASSWORDS[email as keyof typeof PASSWORDS];
+  // Simple authentication for demo accounts - replace with OAuth
+  const expectedPassword = DEMO_PASSWORDS[email as keyof typeof DEMO_PASSWORDS];
   
   if (!expectedPassword || password !== expectedPassword) {
     return null;
   }
   
-  return USERS.find(user => user.email === email) || null;
+  // Find user in database
+  const dbUser = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!dbUser) {
+    return null;
+  }
+
+  // Update last login time
+  await prisma.user.update({
+    where: { id: dbUser.id },
+    data: { lastLoginAt: new Date() },
+  });
+
+  return {
+    id: dbUser.id,
+    email: dbUser.email,
+    name: dbUser.name || "",
+    role: dbUser.role.toLowerCase() as "admin" | "user",
+    tokensUsed: dbUser.tokensUsed,
+    tokensRemaining: dbUser.tokensRemaining,
+  };
 }

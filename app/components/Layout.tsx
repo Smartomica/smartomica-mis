@@ -14,12 +14,12 @@ export function Layout({ children, user }: LayoutProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <Link to="/" className="flex-shrink-0 flex items-center">
+              <Link to="/" className="shrink-0 flex items-center">
                 <h1 className="text-xl font-bold text-blue-600">
                   {t("common.appName")}
                 </h1>
               </Link>
-              
+
               {user && (
                 <div className="ml-10 flex space-x-8">
                   <Link
@@ -44,6 +44,17 @@ export function Layout({ children, user }: LayoutProps) {
                   <span className="text-sm text-gray-700">
                     {t("dashboard.welcome", { name: user.name })}
                   </span>
+                  <span className="text-xs text-gray-500">
+                    {user.tokensRemaining} tokens
+                  </span>
+                  {user.role === "admin" && (
+                    <Link
+                      to="/admin"
+                      className="bg-purple-100 hover:bg-purple-200 text-purple-800 px-3 py-2 rounded-md text-sm font-medium"
+                    >
+                      Admin
+                    </Link>
+                  )}
                   <Link
                     to="/logout"
                     className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-3 py-2 rounded-md text-sm font-medium"

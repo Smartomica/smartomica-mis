@@ -1,7 +1,9 @@
 import { startActiveObservation } from "@langfuse/tracing";
 import { getOpenAI, getLangfuseSDK } from "~/lib/langfuse.server";
 import { uploadFile } from "~/lib/storage/minio.server";
-import type { TranslationJob, Language } from "~/types/document";
+import type { TranslationJob } from "~/types/document";
+import { prisma } from "~/lib/db/client";
+import type { Document, ProcessingMode, DocumentStatus } from "~/lib/db/client";
 import { randomUUID } from "crypto";
 
 export async function processDocument({
@@ -16,66 +18,121 @@ export async function processDocument({
   targetLanguage: string;
   mode: "translate" | "summarize" | "ocr";
   userId: string;
-}): Promise<TranslationJob> {
-  const jobId = randomUUID();
-  const sessionId = `doc-${jobId}`;
+}): Promise<{ success: boolean; documentId?: string; error?: string }> {
+  try {
+    // Check if user has enough tokens (estimate needed tokens)
+    const estimatedTokens = estimateTokensNeeded(files, mode);
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
 
-  // Upload files to Minio first
-  const uploadedFiles = await Promise.all(
-    files.map(async (file, index) => {
-      const objectName = `${userId}/${jobId}/${index}-${file.name}`;
-      const url = await uploadFile(objectName, file.data, file.size, {
-        "Content-Type": file.type,
-        "Original-Name": file.name,
-      });
+    if (!user) {
+      throw new Error("User not found");
+    }
 
+    if (user.tokensRemaining < estimatedTokens) {
       return {
-        id: randomUUID(),
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        url,
-        uploadedAt: new Date().toISOString(),
+        success: false,
+        error: `Insufficient tokens. Need ${estimatedTokens}, have ${user.tokensRemaining}`,
       };
-    }),
-  );
+    }
 
-  // Create job record
-  const job: TranslationJob = {
-    id: jobId,
-    userId,
-    files: uploadedFiles,
-    sourceLanguage,
-    targetLanguage,
-    mode,
-    status: "processing",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    progress: 0,
-  };
+    // Create document records in database
+    const documents = await Promise.all(
+      files.map(async (file) => {
+        const documentId = randomUUID();
+        const objectName = `${userId}/${documentId}/${file.name}`;
+        
+        // Upload file to Minio
+        const url = await uploadFile(objectName, file.data, file.size, {
+          "Content-Type": file.type,
+          "Original-Name": file.name,
+        });
 
-  // Process in background
-  processDocumentAsync(job).catch(console.error);
+        // Create document record
+        const document = await prisma.document.create({
+          data: {
+            id: documentId,
+            filename: objectName,
+            originalName: file.name,
+            mimeType: file.type,
+            fileSize: file.size,
+            status: "PENDING" as DocumentStatus,
+            mode: mapModeToDatabase(mode),
+            sourceLanguage,
+            targetLanguage: mode === "ocr" ? null : targetLanguage,
+            filePath: objectName,
+            userId,
+          },
+        });
 
-  return job;
+        return document;
+      })
+    );
+
+    // Start processing each document
+    for (const document of documents) {
+      processDocumentAsync(document.id).catch(console.error);
+    }
+
+    return {
+      success: true,
+      documentId: documents[0]?.id, // Return first document ID
+    };
+  } catch (error) {
+    console.error("Document processing initiation failed:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
 }
 
-async function processDocumentAsync(job: TranslationJob): Promise<void> {
+async function processDocumentAsync(documentId: string): Promise<void> {
+  const startTime = Date.now();
+  
   try {
+    // Get document from database
+    const document = await prisma.document.findUnique({
+      where: { id: documentId },
+      include: { user: true },
+    });
+
+    if (!document) {
+      throw new Error("Document not found");
+    }
+
+    // Update status to PROCESSING
+    await prisma.document.update({
+      where: { id: documentId },
+      data: { status: "PROCESSING" },
+    });
+
+    // Create processing job
+    const job = await prisma.processingJob.create({
+      data: {
+        type: mapModeToJobType(document.mode),
+        status: "RUNNING",
+        documentId,
+        inputData: {
+          sourceLanguage: document.sourceLanguage,
+          targetLanguage: document.targetLanguage,
+          mode: document.mode,
+        },
+      },
+    });
+
     const result = await startActiveObservation(
-      `document-${job.mode}`,
+      `document-${document.mode}`,
       async (span) => {
-        span.updateTrace({ sessionId: `doc-${job.id}`, tags: [job.mode] });
+        span.updateTrace({ sessionId: `doc-${documentId}`, tags: [document.mode] });
         span.update({
           input: {
-            files: job.files.map((f) => ({
-              name: f.name,
-              size: f.size,
-              type: f.type,
-            })),
-            sourceLanguage: job.sourceLanguage,
-            targetLanguage: job.targetLanguage,
-            mode: job.mode,
+            fileName: document.originalName,
+            fileSize: document.fileSize,
+            sourceLanguage: document.sourceLanguage,
+            targetLanguage: document.targetLanguage,
+            mode: document.mode,
           },
         });
 
@@ -84,18 +141,18 @@ async function processDocumentAsync(job: TranslationJob): Promise<void> {
         let content: string;
 
         // Get appropriate prompt based on mode
-        switch (job.mode) {
-          case "translate":
+        switch (document.mode) {
+          case "TRANSLATE_ONLY":
             promptName = "Mis-medical-translate-Chat";
             break;
-          case "summarize":
+          case "OCR_AND_TRANSLATE":
             promptName = "Mis-medical-summarize-Chat";
             break;
-          case "ocr":
+          case "OCR_ONLY":
             promptName = "Mis-medical-ocr";
             break;
           default:
-            throw new Error(`Unknown processing mode: ${job.mode}`);
+            throw new Error(`Unknown processing mode: ${document.mode}`);
         }
 
         // Try to get prompt from Langfuse, fallback to default
@@ -105,31 +162,30 @@ async function processDocumentAsync(job: TranslationJob): Promise<void> {
         } catch {
           // Fallback prompts if not found in Langfuse
           prompt = getDefaultPrompt(
-            job.mode,
-            job.sourceLanguage,
-            job.targetLanguage,
+            document.mode,
+            document.sourceLanguage,
+            document.targetLanguage || "",
           );
         }
 
-        // For now, simulate text extraction from files
-        // In production, you'd implement actual OCR/document parsing
-        const extractedText = await extractTextFromFiles(job.files);
+        // Extract text from document (simplified for now)
+        const extractedText = await extractTextFromDocument(document);
 
-        if (job.mode === "ocr") {
+        if (document.mode === "OCR_ONLY") {
           content = extractedText;
         } else {
           // Process with OpenAI
           const openai = getOpenAI({
-            sessionId: `doc-${job.id}`,
-            generationName: `${job.mode}-generation`,
+            sessionId: `doc-${documentId}`,
+            generationName: `${document.mode}-generation`,
           });
 
           let messages;
           if (prompt.compile) {
             // Langfuse prompt
             messages = prompt.compile({
-              sourceLanguage: job.sourceLanguage,
-              targetLanguage: job.targetLanguage,
+              sourceLanguage: document.sourceLanguage,
+              targetLanguage: document.targetLanguage,
               document: extractedText,
             }) as Array<{ role: string; content: string }>;
           } else {
@@ -153,69 +209,163 @@ async function processDocumentAsync(job: TranslationJob): Promise<void> {
           content = response.choices[0]?.message?.content || "";
         }
 
-        // Upload result to Minio
-        const resultObjectName = `${job.userId}/${job.id}/result.txt`;
-        const resultUrl = await uploadFile(
-          resultObjectName,
-          Buffer.from(content, "utf-8"),
-          Buffer.byteLength(content, "utf-8"),
-          { "Content-Type": "text/plain" },
-        );
+        const processingTime = Date.now() - startTime;
+        const tokensUsed = estimateTokensUsed(extractedText, content);
+
+        // Update document with results
+        await prisma.document.update({
+          where: { id: documentId },
+          data: {
+            status: "COMPLETED",
+            extractedText: document.mode !== "TRANSLATE_ONLY" ? extractedText : null,
+            translatedText: document.mode !== "OCR_ONLY" ? content : null,
+            tokensUsed,
+            processingTimeMs: processingTime,
+            completedAt: new Date(),
+          },
+        });
+
+        // Complete processing job
+        await prisma.processingJob.update({
+          where: { id: job.id },
+          data: {
+            status: "COMPLETED",
+            outputData: { result: content },
+            tokensUsed,
+            processingTimeMs: processingTime,
+            completedAt: new Date(),
+          },
+        });
+
+        // Deduct tokens from user and create transaction
+        await prisma.$transaction([
+          prisma.user.update({
+            where: { id: document.userId },
+            data: {
+              tokensUsed: { increment: tokensUsed },
+              tokensRemaining: { decrement: tokensUsed },
+            },
+          }),
+          prisma.tokenTransaction.create({
+            data: {
+              type: "PROCESSING_USE",
+              amount: -tokensUsed,
+              reason: `Document processing: ${document.originalName}`,
+              documentId,
+              userId: document.userId,
+            },
+          }),
+        ]);
 
         span.update({
           output: {
             result: content.slice(0, 500) + (content.length > 500 ? "..." : ""),
-            resultUrl,
+            tokensUsed,
+            processingTime,
           },
         });
 
-        return { content, resultUrl };
+        return { content, tokensUsed };
       },
     );
 
-    // Update job status - in production, you'd save to database
-    job.status = "completed";
-    job.result = result.content;
-    job.resultUrl = result.resultUrl;
-    job.progress = 100;
-    job.updatedAt = new Date().toISOString();
   } catch (error) {
     console.error("Document processing failed:", error);
-    job.status = "failed";
-    job.error = error instanceof Error ? error.message : "Unknown error";
-    job.updatedAt = new Date().toISOString();
+    
+    // Update document and job with error
+    await prisma.document.update({
+      where: { id: documentId },
+      data: {
+        status: "FAILED",
+        errorMessage: error instanceof Error ? error.message : "Unknown error",
+        processingTimeMs: Date.now() - startTime,
+      },
+    });
+
+    // Update processing job if it exists
+    await prisma.processingJob.updateMany({
+      where: { 
+        documentId,
+        status: "RUNNING",
+      },
+      data: {
+        status: "FAILED",
+        errorMessage: error instanceof Error ? error.message : "Unknown error",
+        processingTimeMs: Date.now() - startTime,
+      },
+    });
   }
 }
 
-async function extractTextFromFiles(
-  files: Array<{ name: string; type: string; url: string }>,
-): Promise<string> {
+async function extractTextFromDocument(document: Document): Promise<string> {
   // Simplified text extraction - in production you'd implement proper OCR
-  // For now, just return a placeholder based on file names
-  const fileList = files.map((f) => f.name).join(", ");
-  return `[Extracted text from files: ${fileList}]\n\nThis is placeholder text that would be extracted from the actual document files using OCR technology. In production, this would be replaced with actual text extraction from PDFs, images, and other document formats.`;
+  // For now, just return a placeholder based on the document
+  return `[Extracted text from file: ${document.originalName}]\n\nThis is placeholder text that would be extracted from the actual document file using OCR technology. In production, this would be replaced with actual text extraction from PDFs, images, and other document formats. The file is ${document.fileSize} bytes and has MIME type ${document.mimeType}.`;
+}
+
+function mapModeToDatabase(mode: "translate" | "summarize" | "ocr"): ProcessingMode {
+  switch (mode) {
+    case "translate":
+      return "TRANSLATE_ONLY";
+    case "summarize":
+      return "OCR_AND_TRANSLATE";
+    case "ocr":
+      return "OCR_ONLY";
+    default:
+      return "OCR_ONLY";
+  }
+}
+
+function mapModeToJobType(mode: ProcessingMode) {
+  switch (mode) {
+    case "TRANSLATE_ONLY":
+      return "TRANSLATION";
+    case "OCR_AND_TRANSLATE":
+      return "TRANSLATION"; // Primary operation
+    case "OCR_ONLY":
+      return "TEXT_EXTRACTION";
+    default:
+      return "TEXT_EXTRACTION";
+  }
+}
+
+function estimateTokensNeeded(files: Array<{ size: number }>, mode: string): number {
+  // Simple estimation: 1 token per 4 characters, with overhead for processing
+  const totalSize = files.reduce((sum, file) => sum + file.size, 0);
+  const baseTokens = Math.ceil(totalSize / 4);
+  
+  // Add overhead based on mode
+  const overhead = mode === "ocr" ? 1.2 : 2.0; // Translation needs more tokens
+  return Math.ceil(baseTokens * overhead);
+}
+
+function estimateTokensUsed(input: string, output: string): number {
+  // Simple estimation: 1 token per 4 characters for both input and output
+  const inputTokens = Math.ceil(input.length / 4);
+  const outputTokens = Math.ceil(output.length / 4);
+  return inputTokens + outputTokens;
 }
 
 function getDefaultPrompt(
-  mode: string,
+  mode: ProcessingMode,
   sourceLanguage: string,
   targetLanguage: string,
 ) {
   const prompts = {
-    translate: {
+    TRANSLATE_ONLY: {
       system: `You are a professional medical translator. Translate the following medical document from ${sourceLanguage} to ${targetLanguage}. Maintain medical terminology accuracy and document structure.`,
       user: "Please translate this medical document:",
     },
-    summarize: {
+    OCR_AND_TRANSLATE: {
       system: `You are a medical document analyst. Create a concise summary of the medical document, highlighting key medical findings, diagnoses, and recommendations.`,
       user: "Please summarize this medical document:",
     },
-    ocr: {
+    OCR_ONLY: {
       system:
         "You are an OCR system. Extract and clean up text from the document, maintaining structure and correcting any OCR errors.",
       user: "Please extract clean text from this document:",
     },
   };
 
-  return prompts[mode as keyof typeof prompts] || prompts.translate;
+  return prompts[mode] || prompts.TRANSLATE_ONLY;
 }

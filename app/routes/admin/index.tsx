@@ -1,0 +1,493 @@
+import { Link, useLoaderData, useActionData, Form } from "react-router";
+import type { Route } from "./+types/index";
+import { requireUser } from "~/lib/auth/session.server";
+import { Layout } from "~/components/Layout";
+import { prisma } from "~/lib/db/client";
+import { redirect } from "react-router";
+
+export async function loader({ request }: Route.LoaderArgs) {
+  const user = await requireUser(request);
+
+  // Require admin role
+  if (user.role !== "admin") {
+    throw redirect("/dashboard");
+  }
+
+  // Get all users with token stats
+  const users = await prisma.user.findMany({
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      tokensUsed: true,
+      tokensRemaining: true,
+      createdAt: true,
+      lastLoginAt: true,
+      _count: {
+        select: {
+          documents: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  // Get recent token transactions
+  const recentTransactions = await prisma.tokenTransaction.findMany({
+    include: {
+      user: {
+        select: {
+          email: true,
+          name: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 20,
+  });
+
+  // Get system stats
+  const stats = {
+    totalUsers: await prisma.user.count(),
+    totalDocuments: await prisma.document.count(),
+    totalTokensUsed: await prisma.user
+      .aggregate({
+        _sum: { tokensUsed: true },
+      })
+      .then((result) => result._sum.tokensUsed || 0),
+    totalTokensRemaining: await prisma.user
+      .aggregate({
+        _sum: { tokensRemaining: true },
+      })
+      .then((result) => result._sum.tokensRemaining || 0),
+  };
+
+  return { user, users, recentTransactions, stats };
+}
+
+export async function action({ request }: Route.ActionArgs) {
+  const user = await requireUser(request);
+
+  // Require admin role
+  if (user.role !== "admin") {
+    throw redirect("/dashboard");
+  }
+
+  const formData = await request.formData();
+  const actionType = formData.get("actionType");
+
+  try {
+    switch (actionType) {
+      case "addTokens": {
+        const userId = formData.get("userId") as string;
+        const amount = parseInt(formData.get("amount") as string);
+        const reason = formData.get("reason") as string;
+
+        if (!userId || !amount || amount <= 0) {
+          return {
+            error: "Invalid user or token amount",
+          };
+        }
+
+        await prisma.$transaction([
+          prisma.user.update({
+            where: { id: userId },
+            data: { tokensRemaining: { increment: amount } },
+          }),
+          prisma.tokenTransaction.create({
+            data: {
+              type: "MANUAL_ADD",
+              amount,
+              reason: reason || "Manual admin addition",
+              userId,
+              adminUserId: user.id,
+            },
+          }),
+        ]);
+
+        return {
+          success: "Tokens added successfully",
+        };
+      }
+
+      case "subtractTokens": {
+        const userId = formData.get("userId") as string;
+        const amount = parseInt(formData.get("amount") as string);
+        const reason = formData.get("reason") as string;
+
+        if (!userId || !amount || amount <= 0) {
+          return {
+            error: "Invalid user or token amount",
+          };
+        }
+
+        await prisma.$transaction([
+          prisma.user.update({
+            where: { id: userId },
+            data: { tokensRemaining: { decrement: amount } },
+          }),
+          prisma.tokenTransaction.create({
+            data: {
+              type: "MANUAL_SUBTRACT",
+              amount: -amount,
+              reason: reason || "Manual admin removal",
+              userId,
+              adminUserId: user.id,
+            },
+          }),
+        ]);
+
+        return {
+          success: "Tokens removed successfully",
+        };
+      }
+
+      default:
+        return {
+          error: "Unknown action type",
+        };
+    }
+  } catch (error) {
+    console.error("Admin action failed:", error);
+    return {
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
+export default function AdminDashboard() {
+  const { user, users, recentTransactions, stats } =
+    useLoaderData<typeof loader>();
+  const actionData = useActionData<typeof action>();
+
+  return (
+    <Layout user={user}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+          <p className="mt-1 text-sm text-gray-600">
+            Manage users, tokens, and system settings
+          </p>
+        </div>
+
+        {/* Action Messages */}
+        {actionData?.success && (
+          <div className="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+            {actionData.success}
+          </div>
+        )}
+        {actionData?.error && (
+          <div className="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            {actionData.error}
+          </div>
+        )}
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="shrink-0">
+                  <svg
+                    className="h-6 w-6 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Total Users
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {stats.totalUsers}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="shrink-0">
+                  <svg
+                    className="h-6 w-6 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Total Documents
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {stats.totalDocuments}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="shrink-0">
+                  <svg
+                    className="h-6 w-6 text-red-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Tokens Used
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {stats.totalTokensUsed.toLocaleString()}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="shrink-0">
+                  <svg
+                    className="h-6 w-6 text-green-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Tokens Remaining
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {stats.totalTokensRemaining.toLocaleString()}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Users Table */}
+          <div className="bg-white shadow rounded-lg">
+            <div className="px-4 py-5 sm:p-6">
+              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                User Management
+              </h3>
+
+              <div className="mt-6 overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead>
+                    <tr>
+                      <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        User
+                      </th>
+                      <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Tokens
+                      </th>
+                      <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {users.map((userData) => (
+                      <tr key={userData.id}>
+                        <td className="px-3 py-4 whitespace-nowrap text-sm">
+                          <div>
+                            <div className="font-medium text-gray-900">
+                              {userData.name || userData.email}
+                            </div>
+                            <div className="text-gray-500">
+                              {userData.email}
+                            </div>
+                            <div className="text-xs text-gray-400">
+                              {userData.role} • {userData._count.documents} docs
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-3 py-4 whitespace-nowrap text-sm">
+                          <div className="text-gray-900">
+                            Used: {userData.tokensUsed.toLocaleString()}
+                          </div>
+                          <div className="text-green-600">
+                            Left: {userData.tokensRemaining.toLocaleString()}
+                          </div>
+                        </td>
+                        <td className="px-3 py-4 whitespace-nowrap text-sm">
+                          <div className="flex space-x-2">
+                            <Form method="post" className="inline">
+                              <input
+                                type="hidden"
+                                name="actionType"
+                                value="addTokens"
+                              />
+                              <input
+                                type="hidden"
+                                name="userId"
+                                value={userData.id}
+                              />
+                              <input
+                                type="number"
+                                name="amount"
+                                placeholder="Amount"
+                                className="w-20 px-2 py-1 border border-gray-300 rounded text-xs"
+                                required
+                              />
+                              <input
+                                type="text"
+                                name="reason"
+                                placeholder="Reason"
+                                className="w-24 px-2 py-1 border border-gray-300 rounded text-xs ml-1"
+                              />
+                              <button
+                                type="submit"
+                                className="ml-1 px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
+                              >
+                                Add
+                              </button>
+                            </Form>
+                          </div>
+                          <div className="flex space-x-2 mt-1">
+                            <Form method="post" className="inline">
+                              <input
+                                type="hidden"
+                                name="actionType"
+                                value="subtractTokens"
+                              />
+                              <input
+                                type="hidden"
+                                name="userId"
+                                value={userData.id}
+                              />
+                              <input
+                                type="number"
+                                name="amount"
+                                placeholder="Amount"
+                                className="w-20 px-2 py-1 border border-gray-300 rounded text-xs"
+                                required
+                              />
+                              <input
+                                type="text"
+                                name="reason"
+                                placeholder="Reason"
+                                className="w-24 px-2 py-1 border border-gray-300 rounded text-xs ml-1"
+                              />
+                              <button
+                                type="submit"
+                                className="ml-1 px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                              >
+                                Remove
+                              </button>
+                            </Form>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Transactions */}
+          <div className="bg-white shadow rounded-lg">
+            <div className="px-4 py-5 sm:p-6">
+              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                Recent Token Transactions
+              </h3>
+
+              <div className="space-y-3">
+                {recentTransactions.map((transaction) => (
+                  <div
+                    key={transaction.id}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div
+                        className={`w-3 h-3 rounded-full ${
+                          transaction.amount > 0 ? "bg-green-400" : "bg-red-400"
+                        }`}
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">
+                          {transaction.user.name || transaction.user.email}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {transaction.reason}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span
+                        className={`text-sm font-medium ${
+                          transaction.amount > 0
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {transaction.amount > 0 ? "+" : ""}
+                        {transaction.amount.toLocaleString()}
+                      </span>
+                      <p className="text-xs text-gray-500">
+                        {new Date(transaction.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Layout>
+  );
+}

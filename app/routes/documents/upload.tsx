@@ -44,13 +44,19 @@ export async function action({ request }: Route.ActionArgs) {
       }))
     );
 
-    const job = await processDocument({
+    const result = await processDocument({
       files: fileBuffers,
       sourceLanguage,
       targetLanguage,
       mode,
       userId: user.id,
     });
+
+    if (!result.success) {
+      return {
+        error: result.error || "Processing failed",
+      };
+    }
 
     return redirect("/documents");
   } catch (error) {
