@@ -19,17 +19,26 @@ A React Router v7 application for AI-powered medical document translation and pr
 - **Storage**: Minio S3-compatible object storage
 - **Authentication**: Cookie-based sessions (hardcoded accounts for demo)
 
-## Quick Start
+## 🚀 Quick Start
 
-### 1. Environment Setup
+### 1. Installation
+```bash
+git clone <repo-url>
+cd smartomica-mis
+npm install
+```
 
-Copy the example environment file:
+### 2. Environment Setup
 ```bash
 cp .env.example .env
+# Edit .env with your configuration
 ```
 
 Update `.env` with your credentials:
 ```env
+# Database (Docker Compose PostgreSQL)
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/smartomica_mis?schema=public"
+
 # Langfuse Configuration
 LANGFUSE_BASE_URL=https://cloud.langfuse.com
 LANGFUSE_PUBLIC_KEY=pk-lf-your-key
@@ -47,6 +56,54 @@ MINIO_BUCKET=smartomica-mis
 # Session Configuration
 SESSION_SECRET=your-session-secret-key
 ```
+
+### 3. Database Setup (Docker)
+```bash
+# Start PostgreSQL with Docker Compose
+docker-compose up -d postgres
+
+# Setup database schema and seed data
+npx prisma migrate dev --name init
+npx prisma generate
+npx tsx app/lib/db/seed.ts
+```
+
+### 4. Development
+```bash
+npm run dev
+```
+
+## 🐳 Docker Development Environment
+
+The project includes a complete Docker Compose setup for development:
+
+```bash
+# Start all services (PostgreSQL + pgAdmin + Redis)
+docker-compose up -d
+
+# Start only PostgreSQL
+docker-compose up -d postgres
+
+# View logs
+docker-compose logs -f postgres
+
+# Stop all services
+docker-compose down
+
+# Reset database (delete volumes)
+docker-compose down -v
+```
+
+**Services included:**
+- **PostgreSQL** (port 5432) - Main database
+- **pgAdmin** (port 8080) - Database management UI  
+- **Redis** (port 6379) - For caching/queues (optional)
+
+**pgAdmin Access:**
+- URL: http://localhost:8080
+- Email: admin@smartomica.org
+- Password: admin123
+- Server connection: Host `postgres`, Port `5432`, User `postgres`, Password `postgres`
 
 ### 2. Install Dependencies
 
