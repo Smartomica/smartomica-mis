@@ -8,7 +8,21 @@ import {
 } from "react-router";
 
 import type { Route } from "./+types/root";
+import { getUser } from "~/lib/auth/session.server";
 import "./app.css";
+
+export const meta: Route.MetaFunction = () => {
+  return [
+    { title: "SmartOmica MIS - Medical Document Translation" },
+    { name: "description", content: "AI-powered medical document translation platform" },
+  ];
+};
+
+export async function loader({ request }: Route.LoaderArgs) {
+  return {
+    user: await getUser(request),
+  };
+}
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -32,7 +46,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Meta />
         <Links />
       </head>
-      <body>
+      <body className="font-sans bg-gray-50 min-h-screen">
         {children}
         <ScrollRestoration />
         <Scripts />

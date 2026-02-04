@@ -1,0 +1,160 @@
+{
+  "siteName": "SmartOmica MIS",
+  "common": {
+    "appName": "SmartOmica MIS",
+    "tagline": "Professional Medical Document Translation",
+    "language": "Language",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "next": "Next",
+    "upload": "Upload",
+    "download": "Download"
+  },
+  "navigation": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "documents": "Documents",
+    "profile": "Profile",
+    "signIn": "Sign In",
+    "signOut": "Sign Out"
+  },
+  "home": {
+    "hero": {
+      "title": "Medical Document Translation with Artificial Intelligence",
+      "subtitle": "Fast, accurate and confidential translation between all European languages",
+      "cta": "Start Translation",
+      "ctaSecondary": "Learn More"
+    },
+    "features": {
+      "title": "Why Choose Us",
+      "aiTranslation": {
+        "title": "AI Translation",
+        "description": "Advanced AI technology for accurate medical terminology translation"
+      },
+      "security": {
+        "title": "Complete Security",
+        "description": "GDPR compliant, data encryption and privacy protection"
+      },
+      "multilingual": {
+        "title": "Multilingual",
+        "description": "Support for all European languages with automatic detection"
+      },
+      "fast": {
+        "title": "Fast Processing",
+        "description": "Automatic translation in minutes"
+      }
+    },
+    "howItWorks": {
+      "title": "How It Works",
+      "step1": {
+        "title": "Upload Document",
+        "description": "Upload your medical document in PDF, DOCX, TXT, JPG or PNG format"
+      },
+      "step2": {
+        "title": "Choose Languages",
+        "description": "Specify source and target languages"
+      },
+      "step3": {
+        "title": "Get Result",
+        "description": "Receive ready translation instantly"
+      }
+    }
+  },
+  "auth": {
+    "signIn": {
+      "title": "Sign In",
+      "email": "Email",
+      "password": "Password",
+      "button": "Sign In",
+      "noAccount": "Don't have an account?",
+      "signUpLink": "Contact admin"
+    },
+    "signOut": {
+      "title": "Sign Out",
+      "message": "Are you sure you want to sign out?"
+    }
+  },
+  "dashboard": {
+    "welcome": "Welcome, {name}",
+    "stats": {
+      "totalDocuments": "Total Documents",
+      "inProgress": "In Progress", 
+      "completed": "Completed"
+    },
+    "recentDocuments": "Recent Documents",
+    "uploadNew": "Upload New Document",
+    "myDocuments": "My Documents",
+    "viewAllDocuments": "View all your documents",
+    "noDocuments": "No documents",
+    "uploadFirstDocument": "Upload first document"
+  },
+  "fileUpload": {
+    "dragDrop": "Drag and drop file here or click to select",
+    "dragDropMultiple": "Drag and drop files here or click to select",
+    "supportedFormats": "Supported formats: PDF, DOCX, TXT, JPG, PNG",
+    "maxSize": "Maximum size: 10 MB",
+    "multipleFilesAllowed": "Multiple files can be uploaded",
+    "selected": "File selected",
+    "selectedPlural": "Files selected",
+    "clearAll": "Clear all",
+    "addMore": "Add more files"
+  },
+  "documents": {
+    "title": "Your Documents",
+    "uploadButton": "Upload Documents",
+    "manageDocuments": "Manage your documents and translations",
+    "noDocuments": "No documents found",
+    "uploadFirst": "Upload the first document to get started",
+    "upload": {
+      "title": "Upload Document",
+      "documents": "Documents",
+      "sourceLanguage": "Source Language",
+      "sourceLanguageAuto": "Auto-detect",
+      "targetLanguage": "Target Language",
+      "mode": "Processing Mode",
+      "submit": "Upload and Process",
+      "uploadFiles": "Upload {count} files",
+      "selectLanguage": "Select language",
+      "selectMode": "Select mode",
+      "preparing": "Preparing files...",
+      "uploading": "Uploading {count} file(s)...",
+      "uploaded": "Files uploaded successfully! Processing...",
+      "fillAllFields": "Please fill in all fields and select files",
+      "languagesDifferent": "Source and target languages must be different",
+      "uploadError": "Error uploading documents"
+    },
+    "table": {
+      "name": "Name",
+      "sourceLanguage": "Source Language", 
+      "targetLanguage": "Target Language",
+      "mode": "Mode",
+      "status": "Status",
+      "createdAt": "Created",
+      "actions": "Actions"
+    },
+    "status": {
+      "pending": "Pending",
+      "processing": "Processing",
+      "completed": "Completed",
+      "failed": "Failed"
+    },
+    "mode": {
+      "translate": "Translate",
+      "summarize": "Summarize", 
+      "ocr": "OCR"
+    }
+  },
+  "languages": {
+    "en": "English",
+    "ru": "Russian",
+    "es": "Spanish", 
+    "he": "Hebrew",
+    "ar": "Arabic"
+  }
+}
