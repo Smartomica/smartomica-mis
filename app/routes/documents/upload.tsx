@@ -14,6 +14,7 @@ import { DirectUpload } from "~/components/DirectUpload";
 import { t } from "~/lib/i18n/i18n";
 import { SUPPORTED_LANGUAGES, PROCESSING_MODES } from "~/types/document";
 import { ProcessingMode } from "~/generated/client/enums";
+import type { FormUploadFile } from "~/hooks/useFormUpload";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await requireUser(request);
@@ -47,7 +48,7 @@ export async function action({ request }: Route.ActionArgs) {
   try {
     const files = JSON.parse(rawFiles) as Array<{
       objectName: string;
-      originalName: string;
+      name: string;
       mimeType: string;
       size: number;
     }>;
@@ -86,14 +87,7 @@ export default function DocumentUpload() {
   const actionData = useActionData<typeof action>();
   const navigate = useNavigate();
 
-  const [uploadedFiles, setUploadedFiles] = useState<
-    Array<{
-      objectName: string;
-      originalName: string;
-      mimeType: string;
-      size: number;
-    }>
-  >([]);
+  const [uploadedFiles, setUploadedFiles] = useState<FormUploadFile[]>([]);
   const [sourceLanguage, setSourceLanguage] = useState("");
   const [targetLanguage, setTargetLanguage] = useState("");
   const [mode, setMode] = useState<ProcessingMode>(ProcessingMode.TRANSLATE);
@@ -108,8 +102,16 @@ export default function DocumentUpload() {
 
     setIsSubmitting(true);
 
+    // Transform FormUploadFile[] to the expected format for processDocument
+    const filesForProcessing = uploadedFiles.map((file) => ({
+      objectName: file.objectName,
+      name: file.file.name,
+      mimeType: file.file.type,
+      size: file.file.size,
+    }));
+
     const formData = new FormData();
-    formData.set("files", JSON.stringify(uploadedFiles));
+    formData.set("files", JSON.stringify(filesForProcessing));
     formData.set("sourceLanguage", sourceLanguage);
     formData.set("targetLanguage", targetLanguage);
     formData.set("mode", mode);

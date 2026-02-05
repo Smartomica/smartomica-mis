@@ -4,6 +4,7 @@ import { requireUser } from "~/lib/auth/session.server";
 import { Layout } from "~/components/Layout";
 import { t } from "~/lib/i18n/i18n";
 import { prisma } from "~/lib/db/client";
+import { DocumentStatus } from "~/generated/client/enums";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await requireUser(request);
@@ -41,11 +42,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const recentDocuments = recentDocs.map((doc) => ({
     id: doc.id,
     name: doc.originalName,
-    status: doc.status.toLowerCase() as
-      | "completed"
-      | "processing"
-      | "pending"
-      | "failed",
+    status: doc.status,
     createdAt: doc.createdAt.toISOString(),
     mode: mapProcessingMode(doc.mode),
     sourceLanguage: doc.sourceLanguage,
@@ -302,9 +299,9 @@ export default function Dashboard() {
                     <div className="flex items-center space-x-2">
                       <span
                         className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          doc.status === "completed"
+                          doc.status === DocumentStatus.COMPLETED
                             ? "bg-green-100 text-green-800"
-                            : doc.status === "processing"
+                            : doc.status === DocumentStatus.PROCESSING
                               ? "bg-orange-100 text-orange-800"
                               : "bg-gray-100 text-gray-800"
                         }`}

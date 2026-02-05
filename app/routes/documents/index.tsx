@@ -203,7 +203,7 @@ export default function Documents() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {t(`documents.mode.${doc.mode}`)}
+                      {t(`documents.modeOption.${doc.mode}.label`)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {t(`languages.${doc.sourceLanguage}`)} →{" "}

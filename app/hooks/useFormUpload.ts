@@ -65,7 +65,7 @@ export function useFormUpload() {
     }
   };
 
-  const uploadFile = async (fileIndex: number): Promise<void> =>
+  const uploadFile = async (fileIndex: number): Promise<FormUploadFile> =>
     new Promise(function (resolve, reject) {
       const fileToUpload = files[fileIndex];
       if (!fileToUpload || fileToUpload.status !== "pending") {
@@ -117,9 +117,9 @@ export function useFormUpload() {
                   ? { ...f, status: "completed" as const, progress: 100 }
                   : f,
               );
+              resolve(files[fileIndex]);
               return files;
             });
-            resolve();
           } else {
             setFiles((prev) =>
               prev.map((f, i) =>
@@ -176,24 +176,13 @@ export function useFormUpload() {
       }
     });
 
-  const uploadAllFiles = async (): Promise<void> => {
+  const uploadAllFiles = async (): Promise<FormUploadFile[]> => {
     const pendingFiles = files
       .map((_, index) => index)
       .filter((index) => files[index].status === "pending");
 
     // Upload files in parallel
-    await Promise.all(pendingFiles.map(uploadFile));
-  };
-
-  const getCompletedFiles = () => {
-    return files
-      .filter((f) => f.status === "completed")
-      .map((f) => ({
-        objectName: f.objectName,
-        originalName: f.file.name,
-        mimeType: f.file.type,
-        size: f.file.size,
-      }));
+    return await Promise.all(pendingFiles.map(uploadFile));
   };
 
   const reset = () => {
@@ -210,7 +199,6 @@ export function useFormUpload() {
     generateUploadForms,
     uploadFile,
     uploadAllFiles,
-    getCompletedFiles,
     reset,
     removeFile,
   };

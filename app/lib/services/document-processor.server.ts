@@ -20,7 +20,7 @@ export async function processDocument({
 }: {
   files: Array<{
     objectName: string;
-    originalName: string;
+    name: string;
     mimeType: string;
     size: number;
   }>;
@@ -57,7 +57,7 @@ export async function processDocument({
           data: {
             id: documentId,
             filename: file.objectName,
-            originalName: file.originalName,
+            originalName: file.name,
             mimeType: file.mimeType,
             fileSize: file.size,
             status: "PENDING" as DocumentStatus,
@@ -75,7 +75,7 @@ export async function processDocument({
 
     // Start processing each document
     for (const document of documents) {
-      processDocumentAsync(document.id).catch(console.error);
+      await processDocumentAsync(document.id).catch(console.error);
     }
 
     return {
@@ -353,7 +353,7 @@ function estimateTokensNeeded(
 
   // Add overhead based on mode
   const overhead = mode === "ocr" ? 1.2 : 2.0; // Translation needs more tokens
-  return Math.ceil(baseTokens * overhead);
+  return Math.ceil(baseTokens * overhead) * 1e-4;
 }
 
 function estimateTokensUsed(input: string, output: string): number {

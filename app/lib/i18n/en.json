@@ -89,6 +89,7 @@
     },
     "recentDocuments": "Recent Documents",
     "uploadNew": "Upload New Document",
+    "uploadNewDescription": "Upload a new document to get started",
     "myDocuments": "My Documents",
     "viewAllDocuments": "View all your documents",
     "noDocuments": "No documents",
@@ -161,10 +162,10 @@
       "actions": "Actions"
     },
     "status": {
-      "pending": "Pending",
-      "processing": "Processing",
-      "completed": "Completed",
-      "failed": "Failed"
+      "PENDING": "Pending",
+      "PROCESSING": "Processing",
+      "COMPLETED": "Completed",
+      "FAILED": "Failed"
     },
     "mode": {
       "translate": "Translate",

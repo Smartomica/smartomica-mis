@@ -1,15 +1,8 @@
 import { useState } from "react";
-import { useFormUpload } from "~/hooks/useFormUpload";
+import { useFormUpload, type FormUploadFile } from "~/hooks/useFormUpload";
 
 interface DirectUploadProps {
-  onFilesReady: (
-    files: Array<{
-      objectName: string;
-      originalName: string;
-      mimeType: string;
-      size: number;
-    }>,
-  ) => void;
+  onFilesReady: (files: FormUploadFile[]) => void;
   multiple?: boolean;
   accept?: string;
   disabled?: boolean;
@@ -26,7 +19,6 @@ export function DirectUpload({
     isGeneratingForms,
     generateUploadForms,
     uploadAllFiles,
-    getCompletedFiles,
     reset,
     removeFile,
   } = useFormUpload();
@@ -53,11 +45,10 @@ export function DirectUpload({
   const handleUpload = async () => {
     try {
       setUploadError(null);
-      await uploadAllFiles();
 
-      const completedFiles = getCompletedFiles();
+      const completedFiles = await uploadAllFiles();
+
       if (completedFiles.length > 0) {
-        console.log("Files uploaded successfully:", completedFiles);
         onFilesReady(completedFiles);
       }
 

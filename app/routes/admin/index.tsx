@@ -478,7 +478,9 @@ export default function AdminDashboard() {
                         {transaction.amount.toLocaleString()}
                       </span>
                       <p className="text-xs text-gray-500">
-                        {new Date(transaction.createdAt).toLocaleDateString()}
+                        {new Date(transaction.createdAt).toLocaleDateString(
+                          "en-US",
+                        )}
                       </p>
                     </div>
                   </div>
