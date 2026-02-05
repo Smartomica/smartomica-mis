@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { prisma } from "./client";
-import type { UserRole } from "../../../generated/client/client.js";
+import type { UserRole } from "~/generated/client/client.js";
 
 export async function seedDatabase() {
   try {
@@ -28,7 +28,7 @@ export async function seedDatabase() {
     const demoUser = await prisma.user.upsert({
       where: { email: "demo@smartomica.org" },
       update: {
-        name: "Demo User", 
+        name: "Demo User",
         role: "USER" as UserRole,
         tokensRemaining: 1000,
         lastLoginAt: new Date(),
@@ -46,8 +46,8 @@ export async function seedDatabase() {
 
     // Create initial token transaction for admin
     await prisma.tokenTransaction.upsert({
-      where: { 
-        id: "admin-initial-grant"
+      where: {
+        id: "admin-initial-grant",
       },
       update: {},
       create: {
@@ -60,14 +60,14 @@ export async function seedDatabase() {
       },
     });
 
-    // Create initial token transaction for demo user  
+    // Create initial token transaction for demo user
     await prisma.tokenTransaction.upsert({
       where: {
-        id: "demo-initial-grant"
+        id: "demo-initial-grant",
       },
       update: {},
       create: {
-        id: "demo-initial-grant", 
+        id: "demo-initial-grant",
         type: "INITIAL_GRANT",
         amount: 1000,
         reason: "Initial user grant",

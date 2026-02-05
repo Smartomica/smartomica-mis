@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { PrismaClient } from "../../../generated/client/client.js";
+import { PrismaClient } from "~/generated/client/client.js";
 import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
 
@@ -43,4 +43,4 @@ export type {
   JobType,
   JobStatus,
   TokenTransactionType,
-} from "../../../generated/client/client.js";
+} from "~/generated/client/client.js";

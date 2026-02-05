@@ -71,6 +71,82 @@ export async function getFileUrl(objectName: string, expires = 24 * 60 * 60): Pr
   }
 }
 
+export async function getUploadUrl(objectName: string, expires = 3600): Promise<string> {
+  const client = getMinioClient();
+  
+  try {
+    return await client.presignedPutObject(MINIO_BUCKET, objectName, expires);
+  } catch (error) {
+    console.error("Error generating presigned upload URL:", error);
+    throw new Error("Failed to generate upload URL");
+  }
+}
+
+export async function getUploadFormPolicy(
+  objectName: string, 
+  maxFileSize = 10 * 1024 * 1024, // 10MB default
+  expires = 3600
+): Promise<{ url: string; formData: Record<string, string> }> {
+  const client = getMinioClient();
+  
+  try {
+    const policy = client.newPostPolicy();
+    
+    // Set expiration time
+    const expirationDate = new Date();
+    expirationDate.setSeconds(expirationDate.getSeconds() + expires);
+    policy.setExpires(expirationDate);
+    
+    // Set bucket and key
+    policy.setBucket(MINIO_BUCKET);
+    policy.setKey(objectName);
+    
+    // Set content length range (1 byte to maxFileSize)
+    policy.setContentLengthRange(1, maxFileSize);
+    
+    // Generate the presigned POST policy
+    const result = await client.presignedPostPolicy(policy);
+    
+    return {
+      url: `${MINIO_ENDPOINT}/${MINIO_BUCKET}`,
+      formData: result.formData
+    };
+  } catch (error) {
+    console.error("Error generating presigned form policy:", error);
+    throw new Error("Failed to generate upload form policy");
+  }
+}
+
+export async function generatePresignedUrls(
+  objectName: string, 
+  uploadExpires = 3600, 
+  downloadExpires = 24 * 60 * 60
+): Promise<{ uploadUrl: string; downloadUrl: string }> {
+  const [uploadUrl, downloadUrl] = await Promise.all([
+    getUploadUrl(objectName, uploadExpires),
+    getFileUrl(objectName, downloadExpires)
+  ]);
+  
+  return { uploadUrl, downloadUrl };
+}
+
+export async function generateFormUploadData(
+  objectName: string,
+  maxFileSize = 10 * 1024 * 1024,
+  uploadExpires = 3600, 
+  downloadExpires = 24 * 60 * 60
+): Promise<{ 
+  uploadForm: { url: string; formData: Record<string, string> }; 
+  downloadUrl: string; 
+}> {
+  const [uploadForm, downloadUrl] = await Promise.all([
+    getUploadFormPolicy(objectName, maxFileSize, uploadExpires),
+    getFileUrl(objectName, downloadExpires)
+  ]);
+  
+  return { uploadForm, downloadUrl };
+}
+
 export async function deleteFile(objectName: string): Promise<void> {
   const client = getMinioClient();
   

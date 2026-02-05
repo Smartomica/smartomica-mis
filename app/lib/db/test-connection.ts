@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { PrismaClient } from "../../../generated/client/client.js";
+import { PrismaClient } from "~/generated/client/client.js";
 import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
 
@@ -18,7 +18,7 @@ try {
 
   // Test raw pool connection
   const client = await pool.connect();
-  const result = await client.query('SELECT NOW()');
+  const result = await client.query("SELECT NOW()");
   console.log("Direct pool connection successful:", result.rows[0]);
   client.release();
 
@@ -37,7 +37,6 @@ try {
   // Close connections
   await pool.end();
   console.log("Test completed successfully");
-
 } catch (error) {
   console.error("Connection test failed:", error);
 }

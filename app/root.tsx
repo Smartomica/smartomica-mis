@@ -9,20 +9,57 @@ import {
 
 import type { Route } from "./+types/root";
 import { getUser } from "~/lib/auth/session.server";
+import { MINIO_ENDPOINT, NODE_ENV } from "~/env.server";
 import "./app.css";
 
 export const meta: Route.MetaFunction = () => {
   return [
     { title: "SmartOmica MIS - Medical Document Translation" },
-    { name: "description", content: "AI-powered medical document translation platform" },
+    {
+      name: "description",
+      content: "AI-powered medical document translation platform",
+    },
   ];
 };
 
 export async function loader({ request }: Route.LoaderArgs) {
+  // Initialize OpenTelemetry on server
+  // Import instrumentation to ensure it runs on server startup
+  await import("./instrumentation.server");
+
   return {
     user: await getUser(request),
   };
 }
+
+export const headers: Route.HeadersFunction = () => {
+  const minioUrl = new URL(MINIO_ENDPOINT);
+  const minioOrigin = `${minioUrl.protocol}//${minioUrl.hostname}${minioUrl.port ? `:${minioUrl.port}` : ''}`;
+  
+  const isDev = NODE_ENV === 'development';
+  
+  // CSP configuration
+  const csp = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Allow inline scripts for React
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", // Allow inline styles and Google Fonts
+    "font-src 'self' https://fonts.gstatic.com",
+    "img-src 'self' data: blob: " + minioOrigin, // Allow images from Minio
+    "connect-src 'self' " + minioOrigin + (isDev ? " ws: http: https:" : ""), // Allow connections to Minio and dev tools
+    "media-src 'self' " + minioOrigin, // Allow media from Minio
+    "object-src 'none'", // Prevent object/embed elements
+    "frame-ancestors 'none'", // Prevent framing
+    "base-uri 'self'", // Restrict base URI
+    "form-action 'self'", // Restrict form submissions
+  ].join("; ");
+
+  return {
+    "Content-Security-Policy": csp,
+    "X-Frame-Options": "DENY",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+  };
+};
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },

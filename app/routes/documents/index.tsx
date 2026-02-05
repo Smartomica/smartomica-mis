@@ -2,8 +2,10 @@ import { Link, useLoaderData } from "react-router";
 import type { Route } from "./+types/index";
 import { requireUser } from "~/lib/auth/session.server";
 import { Layout } from "~/components/Layout";
+import { DownloadButton } from "~/components/DownloadButton";
 import { t } from "~/lib/i18n/i18n";
 import type { TranslationJob } from "~/types/document";
+import { DocumentStatus } from "~/generated/client/enums";
 import { prisma } from "~/lib/db/client";
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -40,12 +42,12 @@ export async function loader({ request }: Route.LoaderArgs) {
       ],
       sourceLanguage: doc.sourceLanguage,
       targetLanguage: doc.targetLanguage || "",
-      mode: mapProcessingModeToFrontend(doc.mode),
-      status: mapStatusToFrontend(doc.status),
+      mode: doc.mode,
+      status: doc.status,
       result: doc.translatedText || doc.extractedText || undefined,
       resultUrl:
         doc.status === "COMPLETED"
-          ? `/api/documents/${doc.id}/download`
+          ? `/documents/download/${doc.id}`
           : undefined,
       createdAt: doc.createdAt.toISOString(),
       updatedAt: doc.updatedAt.toISOString(),
@@ -55,34 +57,6 @@ export async function loader({ request }: Route.LoaderArgs) {
   });
 
   return { user, documents };
-}
-
-// Helper functions to map database enums to frontend types
-function mapProcessingModeToFrontend(mode: string): TranslationJob["mode"] {
-  switch (mode) {
-    case "OCR_ONLY":
-      return "ocr";
-    case "TRANSLATE_ONLY":
-      return "translate";
-    case "OCR_AND_TRANSLATE":
-      return "summarize"; // Using summarize as the closest match
-    default:
-      return "ocr";
-  }
-}
-
-function mapStatusToFrontend(status: string): TranslationJob["status"] {
-  switch (status) {
-    case "COMPLETED":
-      return "completed";
-    case "PROCESSING":
-      return "processing";
-    case "FAILED":
-      return "failed";
-    case "PENDING":
-    default:
-      return "pending";
-  }
 }
 
 function calculateProgress(status: string): number {
@@ -104,13 +78,13 @@ export default function Documents() {
 
   const getStatusBadge = (status: TranslationJob["status"]) => {
     switch (status) {
-      case "completed":
+      case DocumentStatus.COMPLETED:
         return "bg-green-100 text-green-800";
-      case "processing":
+      case DocumentStatus.PROCESSING:
         return "bg-orange-100 text-orange-800";
-      case "pending":
+      case DocumentStatus.PENDING:
         return "bg-gray-100 text-gray-800";
-      case "failed":
+      case DocumentStatus.FAILED:
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -241,15 +215,16 @@ export default function Documents() {
                       >
                         {t(`documents.status.${doc.status}`)}
                       </span>
-                      {doc.status === "processing" && doc.progress && (
-                        <div className="mt-1 w-full bg-gray-200 rounded-full h-1">
-                          <div
-                            className="bg-blue-600 h-1 rounded-full transition-all duration-300"
-                            style={{ width: `${doc.progress}%` }}
-                          />
-                        </div>
-                      )}
-                      {doc.status === "failed" && doc.error && (
+                      {doc.status === DocumentStatus.PROCESSING &&
+                        doc.progress && (
+                          <div className="mt-1 w-full bg-gray-200 rounded-full h-1">
+                            <div
+                              className="bg-blue-600 h-1 rounded-full transition-all duration-300"
+                              style={{ width: `${doc.progress}%` }}
+                            />
+                          </div>
+                        )}
+                      {doc.status === DocumentStatus.FAILED && doc.error && (
                         <div className="mt-1 text-xs text-red-600">
                           {doc.error}
                         </div>
@@ -259,12 +234,8 @@ export default function Documents() {
                       {new Date(doc.createdAt).toLocaleString("en-US")}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                      {doc.status === "completed" && doc.resultUrl && (
-                        <a
-                          href={doc.resultUrl}
-                          download
-                          className="text-blue-600 hover:text-blue-900 inline-flex items-center"
-                        >
+                      {doc.status === DocumentStatus.COMPLETED && (
+                        <DownloadButton documentId={doc.id}>
                           <svg
                             className="h-4 w-4 mr-1"
                             fill="none"
@@ -279,10 +250,10 @@ export default function Documents() {
                             />
                           </svg>
                           {t("common.download")}
-                        </a>
+                        </DownloadButton>
                       )}
 
-                      {doc.status === "failed" && (
+                      {doc.status === DocumentStatus.FAILED && (
                         <button
                           type="button"
                           className="text-blue-600 hover:text-blue-900 inline-flex items-center"

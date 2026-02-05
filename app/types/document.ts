@@ -1,3 +1,5 @@
+import { DocumentStatus, ProcessingMode } from "~/generated/client/enums";
+
 export interface DocumentFile {
   id: string;
   name: string;
@@ -13,8 +15,8 @@ export interface TranslationJob {
   files: DocumentFile[];
   sourceLanguage: string;
   targetLanguage: string;
-  mode: "translate" | "summarize" | "ocr";
-  status: "pending" | "processing" | "completed" | "failed";
+  mode: ProcessingMode;
+  status: DocumentStatus;
   result?: string;
   resultUrl?: string;
   createdAt: string;
@@ -37,16 +39,30 @@ export const SUPPORTED_LANGUAGES: Language[] = [
   { code: "es", name: "Spanish", flag: "🇪🇸" },
 ];
 
-export const PROCESSING_MODES = [
-  {
-    value: "translate",
+export const PROCESSING_MODES: {
+  [key in ProcessingMode]: {
+    label: string;
+    description: string;
+  };
+} = {
+  [ProcessingMode.OCR]: {
+    label: "OCR",
+    description: "Extract text from images/PDFs",
+  },
+  [ProcessingMode.TRANSLATE]: {
     label: "Translate",
     description: "Translate document to target language",
   },
-  {
-    value: "summarize",
+  [ProcessingMode.TRANSLATE_JUR]: {
+    label: "Translate Jurisdical",
+    description: "Translate document to target jurisdiction",
+  },
+  [ProcessingMode.SUMMARISE]: {
     label: "Summarize",
     description: "Generate summary of document",
   },
-  { value: "ocr", label: "OCR", description: "Extract text from images/PDFs" },
-] as const;
+  [ProcessingMode.SUMMARISE_ONCO]: {
+    label: "Summarize Oncology",
+    description: "Generate summary of oncology document",
+  },
+};

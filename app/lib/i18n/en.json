@@ -84,7 +84,7 @@
     "welcome": "Welcome, {name}",
     "stats": {
       "totalDocuments": "Total Documents",
-      "inProgress": "In Progress", 
+      "inProgress": "In Progress",
       "completed": "Completed"
     },
     "recentDocuments": "Recent Documents",
@@ -129,9 +129,31 @@
       "languagesDifferent": "Source and target languages must be different",
       "uploadError": "Error uploading documents"
     },
+    "modeOption": {
+      "OCR": {
+        "label": "OCR",
+        "description": "Extract text from images"
+      },
+      "TRANSLATE": {
+        "label": "Translate Jurisdical",
+        "description": "Translate document to target jurisdiction"
+      },
+      "TRANSLATE_JUR": {
+        "label": "Translate Juridical",
+        "description": "Translate juridical document"
+      },
+      "SUMMARISE": {
+        "label": "Summarize",
+        "description": "Summarize document"
+      },
+      "SUMMARISE_ONCO": {
+        "label": "Summarize Oncological",
+        "description": "Summarize oncological document"
+      }
+    },
     "table": {
       "name": "Name",
-      "sourceLanguage": "Source Language", 
+      "sourceLanguage": "Source Language",
       "targetLanguage": "Target Language",
       "mode": "Mode",
       "status": "Status",
@@ -146,14 +168,14 @@
     },
     "mode": {
       "translate": "Translate",
-      "summarize": "Summarize", 
+      "summarize": "Summarize",
       "ocr": "OCR"
     }
   },
   "languages": {
     "en": "English",
     "ru": "Russian",
-    "es": "Spanish", 
+    "es": "Spanish",
     "he": "Hebrew",
     "ar": "Arabic"
   }
