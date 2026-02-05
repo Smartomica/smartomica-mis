@@ -28,9 +28,11 @@ export type DocumentStatus = (typeof DocumentStatus)[keyof typeof DocumentStatus
 
 
 export const ProcessingMode = {
-  OCR_ONLY: 'OCR_ONLY',
-  TRANSLATE_ONLY: 'TRANSLATE_ONLY',
-  OCR_AND_TRANSLATE: 'OCR_AND_TRANSLATE'
+  TRANSLATE: 'TRANSLATE',
+  TRANSLATE_JUR: 'TRANSLATE_JUR',
+  OCR: 'OCR',
+  SUMMARISE: 'SUMMARISE',
+  SUMMARISE_ONCO: 'SUMMARISE_ONCO'
 } as const
 
 export type ProcessingMode = (typeof ProcessingMode)[keyof typeof ProcessingMode]

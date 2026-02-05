@@ -3,7 +3,7 @@
 
 generator client {
   provider = "prisma-client"
-  output   = "../generated/client"
+  output   = "../app/generated/client"
 }
 
 datasource db {
@@ -11,116 +11,116 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  role      UserRole @default(USER)
-  
+  id    String   @id @default(cuid())
+  email String   @unique
+  name  String?
+  role  UserRole @default(USER)
+
   // Token management
-  tokensUsed     Int @default(0)
+  tokensUsed      Int @default(0)
   tokensRemaining Int @default(1000) // Default 1000 tokens for new users
-  
+
   // OAuth fields (for future implementation)
   oauthProvider String?
   oauthId       String?
-  
+
   // Timestamps
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   lastLoginAt DateTime?
-  
+
   // Relations
-  documents Document[]
+  documents         Document[]
   tokenTransactions TokenTransaction[]
-  
+
   @@map("users")
 }
 
 model Document {
-  id          String           @id @default(cuid())
-  filename    String
+  id           String @id @default(cuid())
+  filename     String
   originalName String
-  mimeType    String
-  fileSize    Int
-  
+  mimeType     String
+  fileSize     Int
+
   // Processing details
-  status      DocumentStatus   @default(PENDING)
-  mode        ProcessingMode
+  status         DocumentStatus @default(PENDING)
+  mode           ProcessingMode
   sourceLanguage String
   targetLanguage String?
-  
+
   // Storage
-  filePath    String           // Path in Minio
-  
+  filePath String // Path in Minio
+
   // Results
-  extractedText String?
-  translatedText String?
-  tokensUsed   Int?
+  extractedText    String?
+  translatedText   String?
+  tokensUsed       Int?
   processingTimeMs Int?
-  
+
   // Error handling
   errorMessage String?
-  retryCount   Int             @default(0)
-  
+  retryCount   Int     @default(0)
+
   // Timestamps
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   completedAt DateTime?
-  
+
   // Relations
-  userId      String
-  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  jobs        ProcessingJob[]
-  
+  userId String
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobs   ProcessingJob[]
+
   @@map("documents")
 }
 
 model ProcessingJob {
-  id           String         @id @default(cuid())
-  type         JobType
-  status       JobStatus      @default(QUEUED)
-  
+  id     String    @id @default(cuid())
+  type   JobType
+  status JobStatus @default(QUEUED)
+
   // Job details
-  inputData    Json?          // Flexible input parameters
-  outputData   Json?          // Processing results
-  tokensUsed   Int?
+  inputData        Json? // Flexible input parameters
+  outputData       Json? // Processing results
+  tokensUsed       Int?
   processingTimeMs Int?
-  
+
   // Error handling
   errorMessage String?
-  retryCount   Int            @default(0)
-  maxRetries   Int            @default(3)
-  
+  retryCount   Int     @default(0)
+  maxRetries   Int     @default(3)
+
   // Timestamps
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  startedAt    DateTime?
-  completedAt  DateTime?
-  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  startedAt   DateTime?
+  completedAt DateTime?
+
   // Relations
-  documentId   String
-  document     Document       @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
   @@map("processing_jobs")
 }
 
 model TokenTransaction {
-  id          String              @id @default(cuid())
-  type        TokenTransactionType
-  amount      Int                 // Positive for additions, negative for deductions
-  reason      String
-  
+  id     String               @id @default(cuid())
+  type   TokenTransactionType
+  amount Int // Positive for additions, negative for deductions
+  reason String
+
   // Context
-  documentId  String?             // If related to document processing
-  adminUserId String?             // If manually added/removed by admin
-  
+  documentId  String? // If related to document processing
+  adminUserId String? // If manually added/removed by admin
+
   // Timestamps
-  createdAt   DateTime            @default(now())
-  
+  createdAt DateTime @default(now())
+
   // Relations
-  userId      String
-  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("token_transactions")
 }
 
@@ -138,9 +138,11 @@ enum DocumentStatus {
 }
 
 enum ProcessingMode {
-  OCR_ONLY
-  TRANSLATE_ONLY
-  OCR_AND_TRANSLATE
+  TRANSLATE
+  TRANSLATE_JUR
+  OCR
+  SUMMARISE
+  SUMMARISE_ONCO
 }
 
 enum JobType {
@@ -158,9 +160,9 @@ enum JobStatus {
 }
 
 enum TokenTransactionType {
-  INITIAL_GRANT    // Initial tokens for new users
-  MANUAL_ADD       // Admin manually added tokens
-  MANUAL_SUBTRACT  // Admin manually removed tokens
-  PROCESSING_USE   // Tokens used for document processing
-  REFUND           // Tokens refunded due to failed processing
+  INITIAL_GRANT // Initial tokens for new users
+  MANUAL_ADD // Admin manually added tokens
+  MANUAL_SUBTRACT // Admin manually removed tokens
+  PROCESSING_USE // Tokens used for document processing
+  REFUND // Tokens refunded due to failed processing
 }
