@@ -137,15 +137,15 @@ export default function DocumentUpload() {
     <Layout user={user}>
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             {t("documents.upload.title")}
           </h1>
-          <p className="mt-1 text-sm text-gray-600">
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             Upload documents for AI-powered translation and processing
           </p>
         </div>
 
-        <div className="bg-white shadow rounded-lg">
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
           <Form
             method="post"
             encType="multipart/form-data"
@@ -154,7 +154,7 @@ export default function DocumentUpload() {
           >
             {/* File Upload */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                 {t("documents.upload.documents")}
               </label>
               <DirectUpload
@@ -168,7 +168,7 @@ export default function DocumentUpload() {
             <div>
               <label
                 htmlFor="sourceLanguage"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
               >
                 {t("documents.upload.sourceLanguage")}
               </label>
@@ -177,7 +177,7 @@ export default function DocumentUpload() {
                 name="sourceLanguage"
                 value={sourceLanguage}
                 onChange={(e) => setSourceLanguage(e.target.value)}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                className="mt-1 block w-full pl-3 pr-10 py-2 text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm rounded-md"
                 required
               >
                 <option value="">{t("documents.upload.selectLanguage")}</option>
@@ -196,7 +196,7 @@ export default function DocumentUpload() {
             <div>
               <label
                 htmlFor="targetLanguage"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
               >
                 {t("documents.upload.targetLanguage")}
               </label>
@@ -205,7 +205,7 @@ export default function DocumentUpload() {
                 name="targetLanguage"
                 value={targetLanguage}
                 onChange={(e) => setTargetLanguage(e.target.value)}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                className="mt-1 block w-full pl-3 pr-10 py-2 text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm rounded-md"
                 required
               >
                 <option value="">{t("documents.upload.selectLanguage")}</option>
@@ -221,7 +221,7 @@ export default function DocumentUpload() {
             <div>
               <label
                 htmlFor="mode"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
               >
                 {t("documents.upload.mode")}
               </label>
@@ -230,7 +230,7 @@ export default function DocumentUpload() {
                 name="mode"
                 value={mode}
                 onChange={(e) => setMode(e.target.value as ProcessingMode)}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                className="mt-1 block w-full pl-3 pr-10 py-2 text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm rounded-md"
                 required
               >
                 {Object.entries(PROCESSING_MODES).map(([key, modeOption]) => (
@@ -243,8 +243,8 @@ export default function DocumentUpload() {
             </div>
 
             {actionData?.error && (
-              <div className="rounded-md bg-red-50 p-4">
-                <div className="text-sm text-red-700">{actionData.error}</div>
+              <div className="rounded-md bg-red-50 dark:bg-red-900/30 p-4">
+                <div className="text-sm text-red-700 dark:text-red-300">{actionData.error}</div>
               </div>
             )}
 
@@ -253,7 +253,7 @@ export default function DocumentUpload() {
               <button
                 type="button"
                 onClick={() => navigate(-1)}
-                className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="bg-white dark:bg-gray-700 py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-blue-400"
               >
                 {t("common.back")}
               </button>
@@ -267,7 +267,7 @@ export default function DocumentUpload() {
                   !mode ||
                   isSubmitting
                 }
-                className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-blue-400 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <div className="flex items-center">

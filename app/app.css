@@ -6,11 +6,34 @@
     "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
-html,
-body {
-  @apply bg-white dark:bg-gray-950;
+html {
+  height: 100%;
+}
 
+body {
+  @apply bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100;
+  min-height: 100vh;
+  
   @media (prefers-color-scheme: dark) {
     color-scheme: dark;
   }
+}
+
+/* Dark mode toggle transition */
+* {
+  @apply transition-colors duration-200;
+}
+
+/* Input styles for better visibility */
+input, select, textarea {
+  @apply bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600;
+}
+
+input:focus, select:focus, textarea:focus {
+  @apply ring-blue-500 border-blue-500 dark:ring-blue-400 dark:border-blue-400;
+}
+
+/* Button styles */
+button {
+  @apply transition-all duration-200;
 }

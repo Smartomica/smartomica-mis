@@ -73,22 +73,22 @@ export default function Dashboard() {
     <Layout user={user}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             {t("dashboard.welcome", { name: user.name })}
           </h1>
-          <p className="mt-1 text-sm text-gray-600">
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             {t("dashboard.manageDocuments")}
           </p>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-3 mb-8">
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="shrink-0">
                   <svg
-                    className="h-6 w-6 text-gray-400"
+                    className="h-6 w-6 text-gray-400 dark:text-gray-500"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -103,10 +103,10 @@ export default function Dashboard() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
+                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                       {t("dashboard.stats.totalDocuments")}
                     </dt>
-                    <dd className="text-lg font-medium text-gray-900">
+                    <dd className="text-lg font-medium text-gray-900 dark:text-gray-100">
                       {stats.totalDocuments}
                     </dd>
                   </dl>
@@ -115,12 +115,12 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="shrink-0">
                   <svg
-                    className="h-6 w-6 text-orange-400"
+                    className="h-6 w-6 text-orange-400 dark:text-orange-500"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -135,10 +135,10 @@ export default function Dashboard() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
+                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                       {t("dashboard.stats.inProgress")}
                     </dt>
-                    <dd className="text-lg font-medium text-gray-900">
+                    <dd className="text-lg font-medium text-gray-900 dark:text-gray-100">
                       {stats.inProgress}
                     </dd>
                   </dl>
@@ -147,12 +147,12 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="shrink-0">
                   <svg
-                    className="h-6 w-6 text-green-400"
+                    className="h-6 w-6 text-green-400 dark:text-green-500"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -167,10 +167,10 @@ export default function Dashboard() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
+                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                       {t("dashboard.stats.completed")}
                     </dt>
-                    <dd className="text-lg font-medium text-gray-900">
+                    <dd className="text-lg font-medium text-gray-900 dark:text-gray-100">
                       {stats.completed}
                     </dd>
                   </dl>
@@ -182,7 +182,7 @@ export default function Dashboard() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 mb-8">
-          <div className="bg-linear-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg">
+          <div className="bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 rounded-lg shadow-lg">
             <div className="p-6">
               <div className="flex items-center">
                 <div className="shrink-0">
@@ -209,7 +209,7 @@ export default function Dashboard() {
                   </p>
                   <Link
                     to="/documents/upload"
-                    className="mt-3 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-blue-600 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    className="mt-3 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-blue-600 dark:text-blue-700 bg-white dark:bg-gray-100 hover:bg-blue-50 dark:hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                   >
                     {t("common.upload")}
                   </Link>
@@ -218,12 +218,12 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="bg-white border-2 border-gray-200 rounded-lg shadow">
+          <div className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg shadow">
             <div className="p-6">
               <div className="flex items-center">
                 <div className="shrink-0">
                   <svg
-                    className="h-8 w-8 text-gray-400"
+                    className="h-8 w-8 text-gray-400 dark:text-gray-500"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -237,15 +237,15 @@ export default function Dashboard() {
                   </svg>
                 </div>
                 <div className="ml-5 w-0 flex-1">
-                  <h3 className="text-lg font-medium text-gray-900">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
                     {t("dashboard.myDocuments")}
                   </h3>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                     {t("dashboard.viewAllDocuments")}
                   </p>
                   <Link
                     to="/documents"
-                    className="mt-3 inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    className="mt-3 inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                   >
                     View Documents
                   </Link>
@@ -256,9 +256,9 @@ export default function Dashboard() {
         </div>
 
         {/* Recent Documents */}
-        <div className="bg-white shadow rounded-lg">
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
           <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+            <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100 mb-4">
               {t("dashboard.recentDocuments")}
             </h3>
 
@@ -267,12 +267,12 @@ export default function Dashboard() {
                 {recentDocuments.map((doc) => (
                   <div
                     key={doc.id}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
                   >
                     <div className="flex items-center space-x-3">
                       <div className="shrink-0">
                         <svg
-                          className="h-6 w-6 text-gray-400"
+                          className="h-6 w-6 text-gray-400 dark:text-gray-500"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -286,10 +286,10 @@ export default function Dashboard() {
                         </svg>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                           {doc.name}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                           {t(`documents.mode.${doc.mode}`)} •{" "}
                           {t(`languages.${doc.sourceLanguage}`)} →{" "}
                           {t(`languages.${doc.targetLanguage}`)}
@@ -300,15 +300,15 @@ export default function Dashboard() {
                       <span
                         className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                           doc.status === DocumentStatus.COMPLETED
-                            ? "bg-green-100 text-green-800"
+                            ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
                             : doc.status === DocumentStatus.PROCESSING
-                              ? "bg-orange-100 text-orange-800"
-                              : "bg-gray-100 text-gray-800"
+                              ? "bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300"
+                              : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300"
                         }`}
                       >
                         {t(`documents.status.${doc.status}`)}
                       </span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
                         {new Date(doc.createdAt).toLocaleDateString()}
                       </span>
                     </div>
@@ -318,7 +318,7 @@ export default function Dashboard() {
             ) : (
               <div className="text-center py-6">
                 <svg
-                  className="mx-auto h-12 w-12 text-gray-400"
+                  className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -330,16 +330,16 @@ export default function Dashboard() {
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                <h3 className="mt-2 text-sm font-medium text-gray-900">
+                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">
                   {t("dashboard.noDocuments")}
                 </h3>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   {t("dashboard.uploadFirstDocument")}
                 </p>
                 <div className="mt-6">
                   <Link
                     to="/documents/upload"
-                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                   >
                     <svg
                       className="-ml-1 mr-2 h-5 w-5"

@@ -79,15 +79,15 @@ export default function Documents() {
   const getStatusBadge = (status: TranslationJob["status"]) => {
     switch (status) {
       case DocumentStatus.COMPLETED:
-        return "bg-green-100 text-green-800";
+        return "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300";
       case DocumentStatus.PROCESSING:
-        return "bg-orange-100 text-orange-800";
+        return "bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300";
       case DocumentStatus.PENDING:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300";
       case DocumentStatus.FAILED:
-        return "bg-red-100 text-red-800";
+        return "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300";
     }
   };
 
@@ -96,16 +96,16 @@ export default function Documents() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               {t("documents.title")}
             </h1>
-            <p className="mt-1 text-sm text-gray-600">
+            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
               {t("documents.manageDocuments")}
             </p>
           </div>
           <Link
             to="/documents/upload"
-            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-blue-400"
           >
             <svg
               className="-ml-1 mr-2 h-5 w-5"
@@ -125,57 +125,57 @@ export default function Documents() {
         </div>
 
         {documents.length > 0 ? (
-          <div className="bg-white shadow rounded-lg overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                   >
                     {t("documents.table.name")}
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                   >
                     {t("documents.table.mode")}
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                   >
                     {t("documents.table.sourceLanguage")} →{" "}
                     {t("documents.table.targetLanguage")}
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                   >
                     {t("documents.table.status")}
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                   >
                     {t("documents.table.createdAt")}
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
                   >
                     {t("documents.table.actions")}
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                 {documents.map((doc) => (
-                  <tr key={doc.id} className="hover:bg-gray-50">
+                  <tr key={doc.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="shrink-0 h-10 w-10">
                           <svg
-                            className="h-10 w-10 text-gray-400"
+                            className="h-10 w-10 text-gray-400 dark:text-gray-500"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -189,23 +189,23 @@ export default function Documents() {
                           </svg>
                         </div>
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                             {doc.files.length === 1
                               ? doc.files[0].name
                               : `${doc.files.length} files`}
                           </div>
                           {doc.files.length > 1 && (
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-gray-500 dark:text-gray-400">
                               {doc.files.map((f) => f.name).join(", ")}
                             </div>
                           )}
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                       {t(`documents.modeOption.${doc.mode}.label`)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100">
                       {t(`languages.${doc.sourceLanguage}`)} →{" "}
                       {t(`languages.${doc.targetLanguage}`)}
                     </td>
@@ -217,20 +217,20 @@ export default function Documents() {
                       </span>
                       {doc.status === DocumentStatus.PROCESSING &&
                         doc.progress && (
-                          <div className="mt-1 w-full bg-gray-200 rounded-full h-1">
+                          <div className="mt-1 w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1">
                             <div
-                              className="bg-blue-600 h-1 rounded-full transition-all duration-300"
+                              className="bg-blue-600 dark:bg-blue-500 h-1 rounded-full transition-all duration-300"
                               style={{ width: `${doc.progress}%` }}
                             />
                           </div>
                         )}
                       {doc.status === DocumentStatus.FAILED && doc.error && (
-                        <div className="mt-1 text-xs text-red-600">
+                        <div className="mt-1 text-xs text-red-600 dark:text-red-400">
                           {doc.error}
                         </div>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                       {new Date(doc.createdAt).toLocaleString("en-US")}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
@@ -256,7 +256,7 @@ export default function Documents() {
                       {doc.status === DocumentStatus.FAILED && (
                         <button
                           type="button"
-                          className="text-blue-600 hover:text-blue-900 inline-flex items-center"
+                          className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 inline-flex items-center"
                           onClick={() => {
                             // In production, implement retry logic
                             alert(
@@ -283,7 +283,7 @@ export default function Documents() {
 
                       <button
                         type="button"
-                        className="text-red-600 hover:text-red-900 inline-flex items-center"
+                        className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 inline-flex items-center"
                         onClick={() => {
                           // In production, implement delete logic
                           if (
@@ -319,9 +319,9 @@ export default function Documents() {
             </table>
           </div>
         ) : (
-          <div className="text-center py-12 bg-white shadow rounded-lg">
+          <div className="text-center py-12 bg-white dark:bg-gray-800 shadow rounded-lg">
             <svg
-              className="mx-auto h-12 w-12 text-gray-400"
+              className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -333,16 +333,16 @@ export default function Documents() {
                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
-            <h3 className="mt-4 text-lg font-medium text-gray-900">
+            <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">
               {t("documents.noDocuments")}
             </h3>
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
               {t("documents.uploadFirst")}
             </p>
             <div className="mt-6">
               <Link
                 to="/documents/upload"
-                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-blue-400"
               >
                 <svg
                   className="-ml-1 mr-2 h-5 w-5"

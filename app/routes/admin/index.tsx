@@ -165,32 +165,34 @@ export default function AdminDashboard() {
     <Layout user={user}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="mt-1 text-sm text-gray-600">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            Admin Dashboard
+          </h1>
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
             Manage users, tokens, and system settings
           </p>
         </div>
 
         {/* Action Messages */}
         {actionData?.success && (
-          <div className="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+          <div className="mb-6 bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-300 px-4 py-3 rounded">
             {actionData.success}
           </div>
         )}
         {actionData?.error && (
-          <div className="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <div className="mb-6 bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-300 px-4 py-3 rounded">
             {actionData.error}
           </div>
         )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="shrink-0">
                   <svg
-                    className="h-6 w-6 text-gray-400"
+                    className="h-6 w-6 text-gray-400 dark:text-gray-500"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -205,10 +207,10 @@ export default function AdminDashboard() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
+                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                       Total Users
                     </dt>
-                    <dd className="text-lg font-medium text-gray-900">
+                    <dd className="text-lg font-medium text-gray-900 dark:text-gray-100">
                       {stats.totalUsers}
                     </dd>
                   </dl>
@@ -217,7 +219,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="shrink-0">
@@ -237,10 +239,10 @@ export default function AdminDashboard() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
+                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                       Total Documents
                     </dt>
-                    <dd className="text-lg font-medium text-gray-900">
+                    <dd className="text-lg font-medium text-gray-900 dark:text-gray-100">
                       {stats.totalDocuments}
                     </dd>
                   </dl>
@@ -249,12 +251,12 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="shrink-0">
                   <svg
-                    className="h-6 w-6 text-red-400"
+                    className="h-6 w-6 text-red-400 dark:text-red-500"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -269,10 +271,10 @@ export default function AdminDashboard() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
+                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                       Tokens Used
                     </dt>
-                    <dd className="text-lg font-medium text-gray-900">
+                    <dd className="text-lg font-medium text-gray-900 dark:text-gray-100">
                       {stats.totalTokensUsed.toLocaleString()}
                     </dd>
                   </dl>
@@ -281,12 +283,12 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
                 <div className="shrink-0">
                   <svg
-                    className="h-6 w-6 text-green-400"
+                    className="h-6 w-6 text-green-400 dark:text-green-500"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -301,10 +303,10 @@ export default function AdminDashboard() {
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
+                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
                       Tokens Remaining
                     </dt>
-                    <dd className="text-lg font-medium text-gray-900">
+                    <dd className="text-lg font-medium text-gray-900 dark:text-gray-100">
                       {stats.totalTokensRemaining.toLocaleString()}
                     </dd>
                   </dl>
@@ -317,48 +319,48 @@ export default function AdminDashboard() {
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Users Table */}
-          <div className="bg-white shadow rounded-lg">
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
             <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+              <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100 mb-4">
                 User Management
               </h3>
 
               <div className="mt-6 overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                   <thead>
                     <tr>
-                      <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-3 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                         User
                       </th>
-                      <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-3 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                         Tokens
                       </th>
-                      <th className="px-3 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className="px-3 py-3 bg-gray-50 dark:bg-gray-700 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                     {users.map((userData) => (
                       <tr key={userData.id}>
                         <td className="px-3 py-4 whitespace-nowrap text-sm">
                           <div>
-                            <div className="font-medium text-gray-900">
+                            <div className="font-medium text-gray-900 dark:text-gray-100">
                               {userData.name || userData.email}
                             </div>
-                            <div className="text-gray-500">
+                            <div className="text-gray-500 dark:text-gray-400">
                               {userData.email}
                             </div>
-                            <div className="text-xs text-gray-400">
+                            <div className="text-xs text-gray-400 dark:text-gray-500">
                               {userData.role} • {userData._count.documents} docs
                             </div>
                           </div>
                         </td>
                         <td className="px-3 py-4 whitespace-nowrap text-sm">
-                          <div className="text-gray-900">
+                          <div className="text-gray-900 dark:text-gray-100">
                             Used: {userData.tokensUsed.toLocaleString()}
                           </div>
-                          <div className="text-green-600">
+                          <div className="text-green-600 dark:text-green-400">
                             Left: {userData.tokensRemaining.toLocaleString()}
                           </div>
                         </td>
@@ -379,18 +381,18 @@ export default function AdminDashboard() {
                                 type="number"
                                 name="amount"
                                 placeholder="Amount"
-                                className="w-20 px-2 py-1 border border-gray-300 rounded text-xs"
+                                className="w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded text-xs"
                                 required
                               />
                               <input
                                 type="text"
                                 name="reason"
                                 placeholder="Reason"
-                                className="w-24 px-2 py-1 border border-gray-300 rounded text-xs ml-1"
+                                className="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded text-xs ml-1"
                               />
                               <button
                                 type="submit"
-                                className="ml-1 px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
+                                className="ml-1 px-2 py-1 bg-green-600 dark:bg-green-500 text-white text-xs rounded hover:bg-green-700 dark:hover:bg-green-600"
                               >
                                 Add
                               </button>
@@ -412,18 +414,18 @@ export default function AdminDashboard() {
                                 type="number"
                                 name="amount"
                                 placeholder="Amount"
-                                className="w-20 px-2 py-1 border border-gray-300 rounded text-xs"
+                                className="w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded text-xs"
                                 required
                               />
                               <input
                                 type="text"
                                 name="reason"
                                 placeholder="Reason"
-                                className="w-24 px-2 py-1 border border-gray-300 rounded text-xs ml-1"
+                                className="w-24 px-2 py-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded text-xs ml-1"
                               />
                               <button
                                 type="submit"
-                                className="ml-1 px-2 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                                className="ml-1 px-2 py-1 bg-red-600 dark:bg-red-500 text-white text-xs rounded hover:bg-red-700 dark:hover:bg-red-600"
                               >
                                 Remove
                               </button>
@@ -439,9 +441,9 @@ export default function AdminDashboard() {
           </div>
 
           {/* Recent Transactions */}
-          <div className="bg-white shadow rounded-lg">
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
             <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+              <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100 mb-4">
                 Recent Token Transactions
               </h3>
 
@@ -449,19 +451,21 @@ export default function AdminDashboard() {
                 {recentTransactions.map((transaction) => (
                   <div
                     key={transaction.id}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                    className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
                   >
                     <div className="flex items-center space-x-3">
                       <div
                         className={`w-3 h-3 rounded-full ${
-                          transaction.amount > 0 ? "bg-green-400" : "bg-red-400"
+                          transaction.amount > 0
+                            ? "bg-green-400 dark:bg-green-500"
+                            : "bg-red-400 dark:bg-red-500"
                         }`}
                       />
                       <div>
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                           {transaction.user.name || transaction.user.email}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                           {transaction.reason}
                         </p>
                       </div>
@@ -470,14 +474,14 @@ export default function AdminDashboard() {
                       <span
                         className={`text-sm font-medium ${
                           transaction.amount > 0
-                            ? "text-green-600"
-                            : "text-red-600"
+                            ? "text-green-600 dark:text-green-400"
+                            : "text-red-600 dark:text-red-400"
                         }`}
                       >
                         {transaction.amount > 0 ? "+" : ""}
                         {transaction.amount.toLocaleString()}
                       </span>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
                         {new Date(transaction.createdAt).toLocaleDateString(
                           "en-US",
                         )}
