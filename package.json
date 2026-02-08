@@ -7,13 +7,13 @@
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc",
-    "db:setup": "docker-compose up -d postgres && npx prisma migrate dev --name init && npx prisma generate && npx tsx app/lib/db/seed.ts",
-    "db:reset": "docker-compose down -v && npm run db:setup",
+    "db:setup": "podman compose up -d postgres && npx prisma migrate dev --name init && npx prisma generate && npx tsx app/lib/db/seed.ts",
+    "db:reset": "podman compose down -v && npm run db:setup",
     "db:studio": "npx prisma studio",
     "db:seed": "npx tsx app/lib/db/seed.ts",
-    "docker:up": "docker-compose up -d",
-    "docker:down": "docker-compose down",
-    "docker:logs": "docker-compose logs -f"
+    "docker:up": "podman compose up -d",
+    "docker:down": "podman compose down",
+    "docker:logs": "podman compose logs -f"
   },
   "dependencies": {
     "@langfuse/client": "^4.5.1",
@@ -36,6 +36,7 @@
     "langfuse": "^3.38.6",
     "minio": "^8.0.6",
     "openai": "^6.17.0",
+    "pdf-parse": "^2.4.5",
     "pg": "^8.18.0",
     "prisma": "^7.3.0",
     "react": "^19.2.4",
@@ -43,6 +44,8 @@
     "react-icons": "^5.5.0",
     "react-markdown": "^10.1.0",
     "react-router": "7.12.0",
+    "scribe.js-ocr": "^0.10.0",
+    "tesseract.js": "^7.0.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {

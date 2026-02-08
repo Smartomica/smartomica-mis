@@ -10,6 +10,7 @@ import { prisma } from "~/lib/db/client";
 import { type Document, type DocumentStatus } from "~/lib/db/client";
 import { JobType, ProcessingMode } from "~/generated/client/enums";
 import { NeverError } from "~/lib/error";
+import { extractTextFromPDF, requiresOCR } from "~/lib/services/ocr.server";
 
 export async function processDocument({
   files,
@@ -314,16 +315,64 @@ async function processDocumentAsync(documentId: string): Promise<void> {
 }
 
 async function extractTextFromDocument(document: Document): Promise<string> {
-  // Get presigned URL to access file for processing
-  const fileUrl = await getFileUrl(document.filePath);
+  try {
+    console.log(
+      `Extracting text from ${document.originalName} (${document.mimeType})`,
+    );
 
-  // In production, you would:
-  // 1. Use the presigned URL to fetch the file
-  // 2. Process it with OCR libraries or send to OpenAI Vision API
-  // 3. Return extracted text
+    // Handle different file types
+    if (document.mimeType === "application/pdf") {
+      // For PDFs, use our OCR service which handles both direct text and scanned PDFs
+      const ocrResult = await extractTextFromPDF(document.filePath);
 
-  // For now, return placeholder with the URL that would be used
-  return `[Extracted text from file: ${document.originalName}]\n\nFile URL for processing: ${fileUrl}\n\nThis is placeholder text that would be extracted from the actual document file using OCR technology. In production, this would be replaced with actual text extraction from PDFs, images, and other document formats. The file is ${document.fileSize} bytes and has MIME type ${document.mimeType}.`;
+      console.log(
+        `Successfully extracted ${ocrResult.extractedText.length} characters from PDF`,
+      );
+      console.log(`OCR confidence: ${ocrResult.confidence}%`);
+
+      return ocrResult.extractedText;
+    } else if (requiresOCR(document.mimeType)) {
+      // For image files, use OCR directly
+      const ocrResult = await extractTextFromPDF(document.filePath); // Our OCR function handles images too
+
+      console.log(
+        `Successfully extracted ${ocrResult.extractedText.length} characters from image`,
+      );
+      console.log(`OCR confidence: ${ocrResult.confidence}%`);
+
+      return ocrResult.extractedText;
+    } else {
+      // For text-based files or unsupported formats
+      const fileUrl = await getFileUrl(document.filePath);
+
+      // Try to fetch and read as text
+      try {
+        const response = await fetch(fileUrl);
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch file: ${response.statusText}`);
+        }
+
+        const text = await response.text();
+        console.log(`Successfully read ${text.length} characters as text`);
+
+        return text;
+      } catch (error) {
+        console.error("Failed to read file as text:", error);
+        throw new Error(`Unsupported file type: ${document.mimeType}`);
+      }
+    }
+  } catch (error) {
+    console.error(
+      `Failed to extract text from ${document.originalName}:`,
+      error,
+    );
+
+    // Return detailed error information
+    throw new Error(
+      `Text extraction failed for ${document.originalName}: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
+  }
 }
 
 function mapModeToJobType(mode: ProcessingMode) {

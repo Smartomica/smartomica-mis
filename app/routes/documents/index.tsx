@@ -3,6 +3,7 @@ import type { Route } from "./+types/index";
 import { requireUser } from "~/lib/auth/session.server";
 import { Layout } from "~/components/Layout";
 import { DownloadButton } from "~/components/DownloadButton";
+import { TranslateButton } from "~/components/TranslateButton";
 import { t } from "~/lib/i18n/i18n";
 import type { TranslationJob } from "~/types/document";
 import { DocumentStatus } from "~/generated/client/enums";
@@ -235,22 +236,30 @@ export default function Documents() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                       {doc.status === DocumentStatus.COMPLETED && (
-                        <DownloadButton documentId={doc.id}>
-                          <svg
-                            className="h-4 w-4 mr-1"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                            />
-                          </svg>
-                          {t("common.download")}
-                        </DownloadButton>
+                        <>
+                          <DownloadButton documentId={doc.id}>
+                            <svg
+                              className="h-4 w-4 mr-1"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                              />
+                            </svg>
+                            {t("common.download")}
+                          </DownloadButton>
+                          
+                          <TranslateButton
+                            documentId={doc.id}
+                            currentSourceLanguage={doc.sourceLanguage}
+                            onError={(error) => alert(error)}
+                          />
+                        </>
                       )}
 
                       {doc.status === DocumentStatus.FAILED && (
