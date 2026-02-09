@@ -7,10 +7,12 @@ import {
 import { PDFParse } from "pdf-parse";
 import { createWorker, OEM } from "tesseract.js";
 import { join } from "node:path";
-import { MINIO_BUCKET } from "~/env.server";
+import { MINIO_BUCKET, UTILS_BASE_URL } from "~/env.server";
 
-const UTILS_HTTP_PDF_TO_IMAGES_URL =
-  "http://localhost:8765/convert/pdf-to-png?all=true";
+const UTILS_HTTP_PDF_TO_IMAGES_URL = new URL(
+  UTILS_BASE_URL,
+  "/convert/pdf-to-png?all=true",
+).toString();
 
 export interface OCRResult {
   extractedText: string;

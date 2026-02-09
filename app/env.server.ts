@@ -8,6 +8,8 @@ function getEnv(name: string): string {
   return value;
 }
 
+export const UTILS_BASE_URL = getEnv("UTILS_BASE_URL");
+
 // Langfuse Configuration
 export const LANGFUSE_BASE_URL = getEnv("LANGFUSE_BASE_URL");
 export const LANGFUSE_PUBLIC_KEY = getEnv("LANGFUSE_PUBLIC_KEY");
