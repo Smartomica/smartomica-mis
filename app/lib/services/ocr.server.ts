@@ -213,7 +213,7 @@ async function uploadFromZipBlob(zipBlob: Blob) {
   // retrieves metadata (name, dates, etc.) of the entries.
   const zipReader = new ZipReader(zipFileReader);
   const entries = await zipReader.getEntries();
-  const firstEntry = entries.shift();
+  const firstEntry = entries[0];
 
   if (!firstEntry) {
     await zipReader.close();
