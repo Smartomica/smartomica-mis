@@ -44,7 +44,6 @@ export async function extractTextFromPDF(
       uploadResults.map(async function (item) {
         console.log("Doing OCR on image:", item.fileName);
         const ocrResult = await extractTextWithTesseract(item.buffer);
-        console.log("OCR result:", ocrResult);
         return ocrResult;
       }),
     );

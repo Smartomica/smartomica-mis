@@ -15,13 +15,7 @@ import { extractTextFromPDF, requiresOCR } from "~/lib/services/ocr.server";
 
 const PAGES_SUBDIRECTORY = "pages";
 
-export async function processDocument({
-  files,
-  sourceLanguage,
-  targetLanguage,
-  mode,
-  userId,
-}: {
+interface ProcessDocumentArgs {
   files: Array<{
     objectName: string;
     name: string;
@@ -32,7 +26,19 @@ export async function processDocument({
   targetLanguage: string;
   mode: ProcessingMode;
   userId: string;
-}): Promise<{ success: boolean; documentId?: string; error?: string }> {
+}
+
+export async function processDocument({
+  files,
+  sourceLanguage,
+  targetLanguage,
+  mode,
+  userId,
+}: ProcessDocumentArgs): Promise<{
+  success: boolean;
+  documentId?: string;
+  error?: string;
+}> {
   try {
     // Check if user has enough tokens (estimate needed tokens)
     const estimatedTokens = estimateTokensNeeded(files, mode);
