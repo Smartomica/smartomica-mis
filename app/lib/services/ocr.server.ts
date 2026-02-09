@@ -1,4 +1,4 @@
-import { BlobReader, ZipReader } from "@zip.js/zip.js";
+import { BlobReader, ZipReader, Uint8ArrayWriter } from "@zip.js/zip.js";
 import {
   getFileUrl,
   getMinioClient,
@@ -8,7 +8,6 @@ import { PDFParse } from "pdf-parse";
 import { createWorker, OEM } from "tesseract.js";
 import { join } from "node:path";
 import { MINIO_BUCKET } from "~/env.server";
-import { PassThrough } from "node:stream";
 
 const UTILS_HTTP_PDF_TO_IMAGES_URL =
   "http://localhost:8765/convert/pdf-to-png?all=true";
@@ -37,10 +36,9 @@ export async function extractTextFromPDF(filePath: string): Promise<OCRResult> {
     const uploadResults = await pdfToImages(filePath);
 
     const ocrDocs = await Promise.all(
-      uploadResults.map(async function (imageObjectName) {
-        const fileUrl = await getFileUrl(imageObjectName);
-        console.log("Doing OCR on image:", imageObjectName, fileUrl);
-        const ocrResult = await extractTextWithTesseract(fileUrl);
+      uploadResults.map(async function (item) {
+        console.log("Doing OCR on image:", item.fileName);
+        const ocrResult = await extractTextWithTesseract(item.buffer);
         return ocrResult;
       }),
     );
@@ -92,18 +90,17 @@ async function extractDirectPDFText(filePath: string): Promise<string> {
   }
 }
 
-async function extractTextWithTesseract(filePath: string): Promise<OCRResult> {
+async function extractTextWithTesseract(
+  imageSource: string | Buffer,
+): Promise<OCRResult> {
   try {
     console.log("Using Tesseract OCR for text extraction...");
-
-    // Get file URL from Minio
-    const fileUrl = await getFileUrl(filePath);
 
     const worker = await createTesseractWorker();
 
     const {
       data: { text, confidence },
-    } = await worker.recognize(fileUrl);
+    } = await worker.recognize(imageSource);
 
     await worker.terminate();
 
@@ -151,9 +148,12 @@ async function createTesseractWorker() {
   return worker;
 }
 
-async function pdfToImages(filePath: string) {
+async function pdfToImages(
+  filePath: string,
+): Promise<{ fileName: string; buffer: Buffer }[]> {
   const fileUrl = await getFileUrl(filePath);
   const pdfResponse = await fetch(fileUrl);
+
   if (!pdfResponse.ok)
     throw new Error(`Failed to fetch PDF: ${pdfResponse.status}`);
 
@@ -188,17 +188,18 @@ async function pdfToImages(filePath: string) {
   if (isImage) {
     const objectName = "ocr/page-1-of-1.png";
     const uploadUrl = await getUploadUrl(objectName);
+    const buffer = Buffer.from(await imageData.arrayBuffer());
     const uploadResponse = await fetch(uploadUrl, {
       method: "PUT",
       headers: {
         "Content-Type": "image/png",
       },
-      body: imageData,
+      body: buffer,
     });
     if (!uploadResponse.ok) {
       throw new Error(`Failed to upload image: ${uploadResponse.statusText}`);
     }
-    return [objectName];
+    return [{ fileName: objectName, buffer }];
   }
   // Creates a BlobReader object used to read `zipFileBlob`.
   const uploadFromZipBlobResult = await uploadFromZipBlob(imageData);
@@ -226,33 +227,21 @@ async function uploadFromZipBlob(zipBlob: Blob) {
       entries.map(async (entry) => {
         if (!entry.getData) throw new Error("Entry does not have data");
 
-        const passThrough = new PassThrough();
-
-        // Create a WritableStream that writes to the node PassThrough stream
-        const writableStream = new WritableStream({
-          write(chunk) {
-            passThrough.write(Buffer.from(chunk));
-          },
-          close() {
-            passThrough.end();
-          },
-        });
-
-        // Start writing to the passThrough stream
-        const readPromise = entry.getData(writableStream);
+        const writer = new Uint8ArrayWriter();
+        const arrayBuffer = await entry.getData(writer);
+        const buffer = Buffer.from(arrayBuffer);
 
         const fileName = `ocr/${entry.filename}`;
-        // Start upload to MinIO concurrently
-        const uploadPromise = getMinioClient().putObject(
+
+        // Upload to MinIO
+        await getMinioClient().putObject(
           MINIO_BUCKET,
           fileName,
-          passThrough,
-          entry.uncompressedSize,
+          buffer,
+          buffer.length,
         );
 
-        // Wait for both to complete
-        await Promise.all([readPromise, uploadPromise]);
-        return fileName;
+        return { fileName, buffer };
       }),
     );
   } finally {
