@@ -1,17 +1,17 @@
 import { BlobReader, ZipReader, Uint8ArrayWriter } from "@zip.js/zip.js";
+import { PDFParse } from "pdf-parse";
+import { createWorker, OEM } from "tesseract.js";
+import { join } from "node:path";
 import {
   getFileUrl,
   getMinioClient,
   getUploadUrl,
 } from "~/lib/storage/minio.server";
-import { PDFParse } from "pdf-parse";
-import { createWorker, OEM } from "tesseract.js";
-import { join } from "node:path";
 import { MINIO_BUCKET, UTILS_BASE_URL } from "~/env.server";
 
 const UTILS_HTTP_PDF_TO_IMAGES_URL = new URL(
-  UTILS_BASE_URL,
   "/convert/pdf-to-png?all=true",
+  UTILS_BASE_URL,
 ).toString();
 
 export interface OCRResult {
