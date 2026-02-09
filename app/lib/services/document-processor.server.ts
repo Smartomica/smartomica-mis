@@ -1,3 +1,4 @@
+import { dirname, join } from "path";
 import { randomUUID } from "crypto";
 import { startActiveObservation } from "@langfuse/tracing";
 import {
@@ -11,6 +12,8 @@ import { type Document, type DocumentStatus } from "~/lib/db/client";
 import { JobType, ProcessingMode } from "~/generated/client/enums";
 import { NeverError } from "~/lib/error";
 import { extractTextFromPDF, requiresOCR } from "~/lib/services/ocr.server";
+
+const PAGES_SUBDIRECTORY = "pages";
 
 export async function processDocument({
   files,
@@ -323,7 +326,10 @@ async function extractTextFromDocument(document: Document): Promise<string> {
     // Handle different file types
     if (document.mimeType === "application/pdf") {
       // For PDFs, use our OCR service which handles both direct text and scanned PDFs
-      const ocrResult = await extractTextFromPDF(document.filePath);
+      const ocrResult = await extractTextFromPDF(
+        document.filePath,
+        join(dirname(document.filePath), PAGES_SUBDIRECTORY),
+      );
 
       console.log(
         `Successfully extracted ${ocrResult.extractedText.length} characters from PDF`,
@@ -333,7 +339,10 @@ async function extractTextFromDocument(document: Document): Promise<string> {
       return ocrResult.extractedText;
     } else if (requiresOCR(document.mimeType)) {
       // For image files, use OCR directly
-      const ocrResult = await extractTextFromPDF(document.filePath); // Our OCR function handles images too
+      const ocrResult = await extractTextFromPDF(
+        document.filePath,
+        join(dirname(document.filePath), PAGES_SUBDIRECTORY),
+      ); // Our OCR function handles images too
 
       console.log(
         `Successfully extracted ${ocrResult.extractedText.length} characters from image`,

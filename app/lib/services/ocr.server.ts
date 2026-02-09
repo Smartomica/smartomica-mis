@@ -19,7 +19,10 @@ export interface OCRResult {
   pages?: number;
 }
 
-export async function extractTextFromPDF(filePath: string): Promise<OCRResult> {
+export async function extractTextFromPDF(
+  filePath: string,
+  pagesDirectory: string,
+): Promise<OCRResult> {
   try {
     // First try to extract text directly from PDF using pdf-parse
     const directText = await extractDirectPDFText(filePath);
@@ -33,7 +36,7 @@ export async function extractTextFromPDF(filePath: string): Promise<OCRResult> {
       };
     }
 
-    const uploadResults = await pdfToImages(filePath);
+    const uploadResults = await pdfToImages(filePath, pagesDirectory);
 
     const ocrDocs = await Promise.all(
       uploadResults.map(async function (item) {
@@ -150,6 +153,7 @@ async function createTesseractWorker() {
 
 async function pdfToImages(
   filePath: string,
+  pagesDirectory: string,
 ): Promise<{ fileName: string; buffer: Buffer }[]> {
   const fileUrl = await getFileUrl(filePath);
   const pdfResponse = await fetch(fileUrl);
@@ -186,7 +190,7 @@ async function pdfToImages(
   const imageData = await imagesResponse.blob();
 
   if (isImage) {
-    const objectName = "ocr/page-1-of-1.png";
+    const objectName = join(pagesDirectory, "page-1-of-1.png");
     const uploadUrl = await getUploadUrl(objectName);
     const buffer = Buffer.from(await imageData.arrayBuffer());
     const uploadResponse = await fetch(uploadUrl, {
@@ -202,12 +206,15 @@ async function pdfToImages(
     return [{ fileName: objectName, buffer }];
   }
   // Creates a BlobReader object used to read `zipFileBlob`.
-  const uploadFromZipBlobResult = await uploadFromZipBlob(imageData);
+  const uploadFromZipBlobResult = await uploadFromZipBlob(
+    imageData,
+    pagesDirectory,
+  );
 
   return uploadFromZipBlobResult;
 }
 
-async function uploadFromZipBlob(zipBlob: Blob) {
+async function uploadFromZipBlob(zipBlob: Blob, pagesDirectory: string) {
   const zipFileReader = new BlobReader(zipBlob);
 
   // Creates a ZipReader object reading the zip content via `zipFileReader`,
@@ -231,7 +238,7 @@ async function uploadFromZipBlob(zipBlob: Blob) {
         const arrayBuffer = await entry.getData(writer);
         const buffer = Buffer.from(arrayBuffer);
 
-        const fileName = `ocr/${entry.filename}`;
+        const fileName = join(pagesDirectory, entry.filename);
 
         // Upload to MinIO
         await getMinioClient().putObject(
