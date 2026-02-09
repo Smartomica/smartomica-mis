@@ -43,6 +43,13 @@ services:
       - redis_data:/data
     command: redis-server --appendonly yes
 
+  utils-http:
+    container_name: utils-http
+    build: ../smartomica-utils-http
+    restart: unless-stopped
+    ports:
+      - 8765:80
+
 volumes:
   postgres_data:
   pgadmin_data:

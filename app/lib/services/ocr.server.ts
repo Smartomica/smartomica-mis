@@ -1,6 +1,17 @@
-import { getFileUrl } from "~/lib/storage/minio.server";
+import { BlobReader, ZipReader } from "@zip.js/zip.js";
+import {
+  getFileUrl,
+  getMinioClient,
+  getUploadUrl,
+} from "~/lib/storage/minio.server";
 import { PDFParse } from "pdf-parse";
-import { createWorker } from "tesseract.js";
+import { createWorker, OEM } from "tesseract.js";
+import { join } from "node:path";
+import { MINIO_BUCKET } from "~/env.server";
+import { PassThrough } from "node:stream";
+
+const UTILS_HTTP_PDF_TO_IMAGES_URL =
+  "http://localhost:8765/convert/pdf-to-png?all=true";
 
 export interface OCRResult {
   extractedText: string;
@@ -23,8 +34,30 @@ export async function extractTextFromPDF(filePath: string): Promise<OCRResult> {
       };
     }
 
-    // If direct extraction failed or returned minimal text, use OCR
-    return await extractTextWithTesseract(filePath);
+    const uploadResults = await pdfToImages(filePath);
+
+    const ocrDocs = await Promise.all(
+      uploadResults.map(async function (imageObjectName) {
+        const fileUrl = await getFileUrl(imageObjectName);
+        console.log("Doing OCR on image:", imageObjectName, fileUrl);
+        const ocrResult = await extractTextWithTesseract(fileUrl);
+        return ocrResult;
+      }),
+    );
+
+    if (ocrDocs.length === 1) {
+      return ocrDocs[0];
+    }
+
+    return {
+      extractedText: ocrDocs.reduce(
+        (acc, curr) => acc + "\n" + curr.extractedText,
+        "",
+      ),
+      confidence: Math.min(...ocrDocs.map((doc) => doc.confidence || 0)),
+      language: ocrDocs[0]?.language || "unknown",
+      pages: ocrDocs.length,
+    };
   } catch (error) {
     console.error("Error extracting text from PDF:", error);
     throw new Error(
@@ -66,8 +99,6 @@ async function extractTextWithTesseract(filePath: string): Promise<OCRResult> {
     // Get file URL from Minio
     const fileUrl = await getFileUrl(filePath);
 
-    // For now, we'll use Tesseract.js as a fallback since Docker integration
-    // requires more complex setup. In production, you'd want to use the Docker service.
     const worker = await createTesseractWorker();
 
     const {
@@ -95,17 +126,138 @@ async function extractTextWithTesseract(filePath: string): Promise<OCRResult> {
 }
 
 async function createTesseractWorker() {
-  // Dynamic import for Tesseract.js
+  // Root directory of project, tessdata
+  const cachePath = join(import.meta.dirname, "..", "..", "..", "tessdata");
+  console.log({ cachePath });
 
-  const worker = await createWorker("eng", 1, {
-    logger: (m) => {
-      if (m.status === "recognizing text") {
-        console.log(`OCR Progress: ${Math.round(m.progress * 100)}%`);
-      }
+  const worker = await createWorker(
+    ["eng", "rus", "heb", "ara", "deu", "fra", "spa", "por", "uzb"],
+    OEM.LSTM_ONLY,
+    {
+      cachePath,
+      errorHandler(error) {
+        if (error instanceof Error) throw error;
+        console.error(JSON.stringify(error));
+      },
+      logger(m) {
+        if (m.status === "recognizing text") {
+          console.log(`OCR Progress: ${Math.round(m.progress * 100)}%`);
+        }
+        console.log(JSON.stringify(m));
+      },
     },
-  });
+  );
 
   return worker;
+}
+
+async function pdfToImages(filePath: string) {
+  const fileUrl = await getFileUrl(filePath);
+  const pdfResponse = await fetch(fileUrl);
+  if (!pdfResponse.ok)
+    throw new Error(`Failed to fetch PDF: ${pdfResponse.status}`);
+
+  const pdfStream = await pdfResponse.arrayBuffer();
+  const imagesResponse = await fetch(UTILS_HTTP_PDF_TO_IMAGES_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/octet-stream",
+    },
+    body: pdfStream,
+  });
+
+  const size = imagesResponse.headers.get("content-length");
+  const isZip =
+    imagesResponse.headers.get("content-type") === "application/zip";
+  const isImage = imagesResponse.headers.get("content-type") === "image/png";
+  const isJSON =
+    imagesResponse.headers.get("content-type") === "application/json";
+
+  console.log({
+    size,
+    isZip,
+    isImage,
+    isJSON,
+    type: imagesResponse.headers.get("content-type"),
+    status: imagesResponse.status,
+    fileUrl,
+  });
+
+  const imageData = await imagesResponse.blob();
+
+  if (isImage) {
+    const objectName = "ocr/page-1-of-1.png";
+    const uploadUrl = await getUploadUrl(objectName);
+    const uploadResponse = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "image/png",
+      },
+      body: imageData,
+    });
+    if (!uploadResponse.ok) {
+      throw new Error(`Failed to upload image: ${uploadResponse.statusText}`);
+    }
+    return [objectName];
+  }
+  // Creates a BlobReader object used to read `zipFileBlob`.
+  const uploadFromZipBlobResult = await uploadFromZipBlob(imageData);
+
+  return uploadFromZipBlobResult;
+}
+
+async function uploadFromZipBlob(zipBlob: Blob) {
+  const zipFileReader = new BlobReader(zipBlob);
+
+  // Creates a ZipReader object reading the zip content via `zipFileReader`,
+  // retrieves metadata (name, dates, etc.) of the entries.
+  const zipReader = new ZipReader(zipFileReader);
+  const entries = await zipReader.getEntries();
+  const firstEntry = entries.shift();
+
+  if (!firstEntry) {
+    await zipReader.close();
+    throw new Error("No entry found in zip file");
+  }
+
+  // We are not closing the reader here because we need to read the data from entries
+  try {
+    return await Promise.all(
+      entries.map(async (entry) => {
+        if (!entry.getData) throw new Error("Entry does not have data");
+
+        const passThrough = new PassThrough();
+
+        // Create a WritableStream that writes to the node PassThrough stream
+        const writableStream = new WritableStream({
+          write(chunk) {
+            passThrough.write(Buffer.from(chunk));
+          },
+          close() {
+            passThrough.end();
+          },
+        });
+
+        // Start writing to the passThrough stream
+        const readPromise = entry.getData(writableStream);
+
+        const fileName = `ocr/${entry.filename}`;
+        // Start upload to MinIO concurrently
+        const uploadPromise = getMinioClient().putObject(
+          MINIO_BUCKET,
+          fileName,
+          passThrough,
+          entry.uncompressedSize,
+        );
+
+        // Wait for both to complete
+        await Promise.all([readPromise, uploadPromise]);
+        return fileName;
+      }),
+    );
+  } finally {
+    await zipReader.close();
+  }
 }
 
 // Helper function to determine if a file needs OCR based on extension and content
