@@ -11,7 +11,11 @@ import { prisma } from "~/lib/db/client";
 import { type Document, type DocumentStatus } from "~/lib/db/client";
 import { JobType, ProcessingMode } from "~/generated/client/enums";
 import { NeverError } from "~/lib/error";
-import { extractTextFromPDF, requiresOCR } from "~/lib/services/ocr.server";
+import {
+  extractTextFromImage,
+  extractTextFromPDF,
+  requiresOCR,
+} from "~/lib/services/ocr.server";
 
 const PAGES_SUBDIRECTORY = "pages";
 
@@ -345,10 +349,7 @@ async function extractTextFromDocument(document: Document): Promise<string> {
       return ocrResult.extractedText;
     } else if (requiresOCR(document.mimeType)) {
       // For image files, use OCR directly
-      const ocrResult = await extractTextFromPDF(
-        document.filePath,
-        join(dirname(document.filePath), PAGES_SUBDIRECTORY),
-      ); // Our OCR function handles images too
+      const ocrResult = await extractTextFromImage(document.filePath);
 
       console.log(
         `Successfully extracted ${ocrResult.extractedText.length} characters from image`,

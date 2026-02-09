@@ -14,11 +14,42 @@ const UTILS_HTTP_PDF_TO_IMAGES_URL = new URL(
   UTILS_BASE_URL,
 ).toString();
 
+const TESSERACT_LANGUAGES = [
+  "eng",
+  "rus",
+  "heb",
+  "ara",
+  "deu",
+  "fra",
+  "spa",
+  "por",
+  "uzb",
+];
+
 export interface OCRResult {
   extractedText: string;
   confidence?: number;
   language?: string;
   pages?: number;
+}
+
+export async function extractTextFromImage(
+  filePath: string,
+): Promise<OCRResult> {
+  const worker = await createWorker(TESSERACT_LANGUAGES, OEM.LSTM_ONLY, {
+    logger: (m) => console.log(m),
+  });
+  const fileUrl = await getFileUrl(filePath);
+  const { data } = await worker.recognize(fileUrl);
+
+  await worker.terminate();
+
+  return {
+    extractedText: data.text,
+    confidence: data.confidence,
+    language: "unknown",
+    pages: 1,
+  };
 }
 
 export async function extractTextFromPDF(
@@ -137,23 +168,19 @@ async function createTesseractWorker() {
   const cachePath = join(import.meta.dirname, "..", "..", "..", "tessdata");
   console.log({ cachePath });
 
-  const worker = await createWorker(
-    ["eng", "rus", "heb", "ara", "deu", "fra", "spa", "por", "uzb"],
-    OEM.LSTM_ONLY,
-    {
-      cachePath,
-      errorHandler(error) {
-        if (error instanceof Error) throw error;
-        console.error(JSON.stringify(error));
-      },
-      logger(m) {
-        if (m.status === "recognizing text") {
-          console.log(`OCR Progress: ${Math.round(m.progress * 100)}%`);
-        }
-        console.log(JSON.stringify(m));
-      },
+  const worker = await createWorker(TESSERACT_LANGUAGES, OEM.LSTM_ONLY, {
+    cachePath,
+    errorHandler(error) {
+      if (error instanceof Error) throw error;
+      console.error(JSON.stringify(error));
     },
-  );
+    logger(m) {
+      if (m.status === "recognizing text") {
+        console.log(`OCR Progress: ${Math.round(m.progress * 100)}%`);
+      }
+      console.log(JSON.stringify(m));
+    },
+  });
 
   return worker;
 }

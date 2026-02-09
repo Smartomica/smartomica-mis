@@ -1,7 +1,7 @@
 .DS_Store
 .env
 /node_modules/
-/tessdata/
+*.traineddata
 
 # React Router
 /.react-router/
