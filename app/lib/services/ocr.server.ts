@@ -44,6 +44,7 @@ export async function extractTextFromPDF(
       uploadResults.map(async function (item) {
         console.log("Doing OCR on image:", item.fileName);
         const ocrResult = await extractTextWithTesseract(item.buffer);
+        console.log("OCR result:", ocrResult);
         return ocrResult;
       }),
     );
@@ -87,6 +88,11 @@ async function extractDirectPDFText(filePath: string): Promise<string> {
     });
 
     const parsedPdf = await pdfData.getText();
+
+    if (parsedPdf.getPageText(0).replaceAll("\n", "").trim().length === 0) {
+      console.warn("PDF first page is empty, doing OCR");
+      return "";
+    }
 
     return parsedPdf.text;
   } catch (error) {
