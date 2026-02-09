@@ -1,13 +1,13 @@
+import { join } from "node:path";
 import { BlobReader, ZipReader, Uint8ArrayWriter } from "@zip.js/zip.js";
 import { PDFParse } from "pdf-parse";
 import { createWorker, OEM } from "tesseract.js";
-import { join } from "node:path";
 import {
   getFileUrl,
-  getMinioClient,
   getUploadUrl,
+  uploadFile,
 } from "~/lib/storage/minio.server";
-import { MINIO_BUCKET, UTILS_BASE_URL } from "~/env.server";
+import { UTILS_BASE_URL } from "~/env.server";
 
 const UTILS_HTTP_PDF_TO_IMAGES_URL = new URL(
   "/convert/pdf-to-png?all=true",
@@ -247,13 +247,7 @@ async function uploadFromZipBlob(zipBlob: Blob, pagesDirectory: string) {
 
         const fileName = join(pagesDirectory, entry.filename);
 
-        // Upload to MinIO
-        await getMinioClient().putObject(
-          MINIO_BUCKET,
-          fileName,
-          buffer,
-          buffer.length,
-        );
+        await uploadFile(fileName, buffer);
 
         return { fileName, buffer };
       }),
