@@ -14,7 +14,7 @@ export interface User {
 // Hard-coded passwords for demo accounts - replace with OAuth later
 const DEMO_PASSWORDS = {
   "admin@smartomica.org": "admin123",
-  "demo@smartomica.org": "demo123", 
+  "peled@smartomica.org": "peled123",
 };
 
 export const sessionStorage = createCookieSessionStorage({
@@ -32,7 +32,7 @@ export const sessionStorage = createCookieSessionStorage({
 export async function createUserSession(user: User, redirectTo: string) {
   const session = await sessionStorage.getSession();
   session.set("userId", user.id);
-  
+
   return redirect(redirectTo, {
     headers: {
       "Set-Cookie": await sessionStorage.commitSession(session),
@@ -42,14 +42,14 @@ export async function createUserSession(user: User, redirectTo: string) {
 
 export async function getUser(request: Request): Promise<User | null> {
   const session = await sessionStorage.getSession(
-    request.headers.get("Cookie")
+    request.headers.get("Cookie"),
   );
   const userId = session.get("userId");
-  
+
   if (!userId || typeof userId !== "string") {
     return null;
   }
-  
+
   const dbUser = await prisma.user.findUnique({
     where: { id: userId },
   });
@@ -84,9 +84,9 @@ export async function requireUser(request: Request): Promise<User> {
 
 export async function logout(request: Request) {
   const session = await sessionStorage.getSession(
-    request.headers.get("Cookie")
+    request.headers.get("Cookie"),
   );
-  
+
   return redirect("/login", {
     headers: {
       "Set-Cookie": await sessionStorage.destroySession(session),
@@ -94,14 +94,17 @@ export async function logout(request: Request) {
   });
 }
 
-export async function login(email: string, password: string): Promise<User | null> {
+export async function login(
+  email: string,
+  password: string,
+): Promise<User | null> {
   // Simple authentication for demo accounts - replace with OAuth
   const expectedPassword = DEMO_PASSWORDS[email as keyof typeof DEMO_PASSWORDS];
-  
+
   if (!expectedPassword || password !== expectedPassword) {
     return null;
   }
-  
+
   // Find user in database
   const dbUser = await prisma.user.findUnique({
     where: { email },
