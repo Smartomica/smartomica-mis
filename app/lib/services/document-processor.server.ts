@@ -5,6 +5,7 @@ import {
   getOpenAI,
   getLangfuseSDK,
   compileChatPrompt,
+  listPrompts,
 } from "~/lib/langfuse.server";
 import { getFileUrl } from "~/lib/storage/minio.server";
 import { prisma } from "~/lib/db/client";
@@ -16,8 +17,14 @@ import {
   extractTextFromPDF,
   requiresOCR,
 } from "~/lib/services/ocr.server";
+import type { ChatPromptClient, TextPromptClient } from "@langfuse/client";
 
 const PAGES_SUBDIRECTORY = "pages";
+
+export interface SimplifiedChatMessage {
+  role: "system" | "user" | "assistant";
+  content: string;
+}
 
 interface ProcessDocumentArgs {
   files: Array<{
@@ -32,6 +39,23 @@ interface ProcessDocumentArgs {
   userId: string;
 }
 
+enum Lang {
+  Auto = "auto",
+  AR = "ar",
+  EN = "en",
+  ES = "es",
+  FR = "fr",
+  DE = "de",
+  HE = "he",
+  IT = "it",
+  PT = "pt",
+  RU = "ru",
+  UK = "uk",
+  UZ = "uz",
+}
+
+export const ALL_LANGUAGES: Lang[] = Object.values(Lang);
+
 export async function processDocument({
   files,
   sourceLanguage,
@@ -44,6 +68,13 @@ export async function processDocument({
   error?: string;
 }> {
   try {
+    if (
+      !ALL_LANGUAGES.includes(sourceLanguage as Lang) ||
+      !ALL_LANGUAGES.includes(targetLanguage as Lang)
+    ) {
+      throw new Error("Invalid language");
+    }
+
     // Check if user has enough tokens (estimate needed tokens)
     const estimatedTokens = estimateTokensNeeded(files, mode);
     const user = await prisma.user.findUnique({
@@ -154,93 +185,39 @@ async function processDocumentAsync(documentId: string): Promise<void> {
         },
       });
 
-      const langfuse = getLangfuseSDK();
-      let promptName: string;
-      let content: string;
-
-      // Get appropriate prompt based on mode
-      switch (document.mode) {
-        case ProcessingMode.SUMMARISE:
-          promptName = "Mis-summarise-Chat";
-          break;
-        case ProcessingMode.SUMMARISE_ONCO:
-          promptName = "Mis-summarise-onco-Chat";
-          break;
-        case ProcessingMode.OCR:
-          promptName = "Mis-ocr-Chat";
-          break;
-        case ProcessingMode.TRANSLATE:
-          promptName = "Mis-translate-Chat";
-          break;
-        case ProcessingMode.TRANSLATE_JUR:
-          promptName = "Mis-translate-jur-Chat";
-          break;
-        default:
-          throw new NeverError(document.mode);
-      }
-
-      // Try to get prompt from Langfuse, fallback to default
-      let prompt;
-      try {
-        prompt = await langfuse.prompt.get(promptName);
-      } catch {
-        // Fallback prompts if not found in Langfuse
-        prompt = getDefaultPrompt(
-          document.mode,
-          document.sourceLanguage,
-          document.targetLanguage || "",
-        );
-      }
+      let prompt = await resolveMisPrompt(
+        document.mode,
+        document.sourceLanguage as Lang,
+        document.targetLanguage as Lang,
+      );
 
       // Extract text from document (simplified for now)
       const extractedText = await extractTextFromDocument(document);
 
-      if (document.mode === ProcessingMode.OCR) {
-        content = extractedText;
-      } else {
-        // Process with OpenAI
-        const openai = getOpenAI({
-          sessionId: `doc-${documentId}`,
-          generationName: `${document.mode}-generation`,
-        });
+      // Process with OpenAI
+      const openai = getOpenAI({
+        sessionId: `doc-${documentId}`,
+        generationName: `${document.mode}-generation`,
+      });
 
-        let messages;
-        if (
-          prompt &&
-          typeof prompt === "object" &&
-          "prompt" in prompt &&
-          prompt.prompt
-        ) {
-          // Langfuse prompt
-          messages = compileChatPrompt(prompt as any, {
-            sourceLanguage: document.sourceLanguage,
-            targetLanguage: document.targetLanguage || "",
-            document: extractedText,
-          });
-        } else {
-          // Fallback prompt
-          const fallbackPrompt = prompt as { system: string; user: string };
-          messages = [
-            { role: "system" as const, content: fallbackPrompt.system },
-            {
-              role: "user" as const,
-              content: `${fallbackPrompt.user}\n\nDocument:\n${extractedText}`,
-            },
-          ];
-        }
+      let messages = [
+        ...prompt,
+        {
+          role: "user",
+          content: `Tesseract OCR result: ${extractedText}`,
+        } as const,
+      ];
 
-        const response = await openai.chat.completions.create({
-          model: "openai/gpt-4o",
-          messages,
-          temperature: 0.3,
-          max_tokens: 4000,
-        });
+      const response = await openai.chat.completions.create({
+        model: "openai/gpt-4o",
+        messages,
+        temperature: 0.3,
+        max_tokens: 4000,
+      });
 
-        content = response.choices[0]?.message?.content || "";
-      }
-
+      const generatedContent = response.choices[0]?.message?.content || "";
       const processingTime = Date.now() - startTime;
-      const tokensUsed = estimateTokensUsed(extractedText, content);
+      const tokensUsed = estimateTokensUsed(extractedText, generatedContent);
 
       // Update document with results
       await prisma.document.update({
@@ -250,7 +227,9 @@ async function processDocumentAsync(documentId: string): Promise<void> {
           extractedText:
             document.mode !== ProcessingMode.OCR ? extractedText : null,
           translatedText:
-            document.mode !== ProcessingMode.TRANSLATE ? content : null,
+            document.mode !== ProcessingMode.TRANSLATE
+              ? generatedContent
+              : null,
           tokensUsed,
           processingTimeMs: processingTime,
           completedAt: new Date(),
@@ -262,7 +241,7 @@ async function processDocumentAsync(documentId: string): Promise<void> {
         where: { id: job.id },
         data: {
           status: "COMPLETED",
-          outputData: { result: content },
+          outputData: { result: generatedContent },
           tokensUsed,
           processingTimeMs: processingTime,
           completedAt: new Date(),
@@ -291,13 +270,13 @@ async function processDocumentAsync(documentId: string): Promise<void> {
 
       span.update({
         output: {
-          result: content.slice(0, 500) + (content.length > 500 ? "..." : ""),
+          result: generatedContent,
           tokensUsed,
           processingTime,
         },
       });
 
-      return { content, tokensUsed };
+      return { content: generatedContent, tokensUsed };
     });
   } catch (error) {
     console.error("Document processing failed:", error);
@@ -428,39 +407,150 @@ function estimateTokensUsed(input: string, output: string): number {
   return inputTokens + outputTokens;
 }
 
-function getDefaultPrompt(
-  mode: ProcessingMode,
-  sourceLanguage: string,
-  targetLanguage: string,
-) {
-  const prompts: {
-    [key in ProcessingMode]: {
-      system: string;
-      user: string;
-    };
-  } = {
-    [ProcessingMode.OCR]: {
-      system:
-        "You are an OCR system. Extract and clean up text from the document, maintaining structure and correcting any OCR errors.",
-      user: "Please extract clean text from this document:",
-    },
-    [ProcessingMode.TRANSLATE]: {
-      system: `You are a professional medical translator. Translate the following medical document from ${sourceLanguage} to ${targetLanguage}. Maintain medical terminology accuracy and document structure.`,
-      user: "Please translate this medical document:",
-    },
-    [ProcessingMode.SUMMARISE]: {
-      system: `You are a medical document analyst. Create a concise summary of the medical document, highlighting key medical findings, diagnoses, and recommendations.`,
-      user: "Please summarize this medical document:",
-    },
-    [ProcessingMode.SUMMARISE_ONCO]: {
-      system: `You are a medical document analyst. Create a concise summary of the medical document, highlighting key medical findings, diagnoses, and recommendations.`,
-      user: "Please summarize this medical document:",
-    },
-    [ProcessingMode.TRANSLATE_JUR]: {
-      system: `You are a professional legal translator. Translate the following document from ${sourceLanguage} to ${targetLanguage}. Maintain legal terminology accuracy and document structure.`,
-      user: "Please translate this document:",
-    },
-  };
+async function resolveMisPrompt(
+  processingMode: ProcessingMode,
+  sourceLanguage: Lang,
+  targetLanguage: Lang,
+): Promise<SimplifiedChatMessage[]> {
+  const misPrompts = await listPrompts({ tag: "mis", limit: 100 });
+  const sdk = getLangfuseSDK();
 
-  return prompts[mode] || prompts.TRANSLATE;
+  switch (processingMode) {
+    case ProcessingMode.OCR:
+      const ocrChatPrompts = misPrompts.data.filter(
+        (p) =>
+          p.type === "chat" &&
+          p.tags.includes("ocr") &&
+          p.tags.includes("chat"),
+      );
+
+      const glossaryTextPrompts = misPrompts.data.filter(
+        (p) =>
+          p.type === "text" &&
+          p.tags.includes("glossary") &&
+          p.tags.includes(sourceLanguage),
+      );
+
+      let ocrChatPrompt = await sdk.prompt.get(ocrChatPrompts[0]?.name, {
+        type: "chat",
+      });
+
+      let ocrTextPrompt = await sdk.prompt.get(glossaryTextPrompts[0]?.name, {
+        type: "text",
+      });
+
+      return combinePrompts(ocrChatPrompt, ocrTextPrompt);
+
+    case ProcessingMode.SUMMARISE:
+      const summariseChatPromptName = misPrompts.data
+        .filter((p) => p.type === "chat" && p.tags.includes("summary"))
+        .at(0)?.name;
+
+      const summariseTextPromptName = misPrompts.data
+        .filter(
+          (p) =>
+            p.type === "text" &&
+            p.tags.includes("glossary") &&
+            p.tags.includes(sourceLanguage),
+        )
+        ?.at(0)?.name;
+
+      let summariseChatPrompt = summariseChatPromptName
+        ? await sdk.prompt.get(summariseChatPromptName, {
+            type: "chat",
+          })
+        : null;
+
+      let summariseTextPrompt = summariseTextPromptName
+        ? await sdk.prompt.get(summariseTextPromptName, {
+            type: "text",
+          })
+        : null;
+
+      return combinePrompts(summariseChatPrompt, summariseTextPrompt);
+
+    case ProcessingMode.SUMMARISE_ONCO:
+      const summariseOncoChatPromptName = misPrompts.data
+        .filter((p) => p.type === "chat" && p.tags.includes("oncology"))
+        .at(0)?.name;
+
+      const summariseOncoTextPromptName = misPrompts.data
+        .filter(
+          (p) =>
+            p.type === "text" &&
+            p.tags.includes("glossary") &&
+            p.tags.includes(sourceLanguage),
+        )
+        ?.at(0)?.name;
+
+      let summariseOncoChatPrompt = summariseOncoChatPromptName
+        ? await sdk.prompt.get(summariseOncoChatPromptName, {
+            type: "chat",
+          })
+        : null;
+
+      let summariseOncoTextPrompt = summariseOncoTextPromptName
+        ? await sdk.prompt.get(summariseOncoTextPromptName, {
+            type: "text",
+          })
+        : null;
+
+      return combinePrompts(summariseOncoChatPrompt, summariseOncoTextPrompt);
+
+    case ProcessingMode.TRANSLATE:
+    case ProcessingMode.TRANSLATE_JUR:
+      const langPairChatPromptName = misPrompts.data
+        .filter(
+          (p) =>
+            p.type === "chat" &&
+            p.tags.includes("translate") &&
+            p.tags.includes(sourceLanguage) &&
+            p.tags.includes(targetLanguage),
+        )
+        .at(0)?.name;
+
+      const glossarySourceTextPromptName = misPrompts.data
+        .filter((p) => p.type === "text" && p.tags.includes(sourceLanguage))
+        .at(0)?.name;
+
+      const glossaryTargetTextPromptName = misPrompts.data
+        .filter((p) => p.type === "text" && p.tags.includes(targetLanguage))
+        .at(0)?.name;
+
+      const langPairChatPrompt = langPairChatPromptName
+        ? await sdk.prompt.get(langPairChatPromptName, { type: "chat" })
+        : null;
+
+      const glossarySourceTextPrompt = glossarySourceTextPromptName
+        ? await sdk.prompt.get(glossarySourceTextPromptName, { type: "text" })
+        : null;
+      const glossaryTargetTextPrompt = glossaryTargetTextPromptName
+        ? await sdk.prompt.get(glossaryTargetTextPromptName, { type: "text" })
+        : null;
+
+      return combinePrompts(
+        langPairChatPrompt,
+        glossarySourceTextPrompt,
+        glossaryTargetTextPrompt,
+      );
+    default:
+      throw new NeverError(processingMode);
+  }
+}
+
+function combinePrompts(
+  chat: ChatPromptClient | null,
+  ...texts: (TextPromptClient | null)[]
+): SimplifiedChatMessage[] {
+  const combinedPrompt = compileChatPrompt(chat, {});
+
+  const combinedTextPrompts = texts.filter(Boolean).map(
+    (text) =>
+      ({
+        role: "system",
+        content: text!.prompt,
+      }) as const,
+  );
+
+  return [...combinedPrompt, ...combinedTextPrompts];
 }

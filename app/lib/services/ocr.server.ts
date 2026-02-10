@@ -24,6 +24,7 @@ const TESSERACT_LANGUAGES = [
   "spa",
   "por",
   "uzb",
+  "ukr",
 ];
 
 export interface OCRResult {

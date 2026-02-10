@@ -8,6 +8,7 @@ import {
   LANGFUSE_SECRET_KEY,
   OPENROUTER_API_KEY,
 } from "~/env.server";
+import type { SimplifiedChatMessage } from "./services/document-processor.server";
 
 export function getLangfuseSDK() {
   return new LangfuseClient({
@@ -46,19 +47,24 @@ function getLangfuseAPI() {
   });
 }
 
+export const listPrompts = (() => {
+  const api = getLangfuseAPI();
+  return api.prompts.list.bind(api.prompts);
+})();
+
 export function compileChatPrompt(
   prompt: any,
   variables: Record<string, string>,
 ) {
-  if (prompt.type !== "chat" || !Array.isArray(prompt.prompt)) {
+  if (prompt?.type !== "chat" || !Array.isArray(prompt.prompt)) {
     console.error("Prompt is not an array. Chat prompt expected");
+    console.error("Invalid prompt configuration", prompt, variables);
     throw new Error("Invalid prompt configuration");
   }
 
-  const compiledPrompt = prompt.compile(variables) as unknown as {
-    role: "system" | "user" | "assistant";
-    content: string;
-  }[];
+  const compiledPrompt = prompt.compile(
+    variables,
+  ) as unknown as SimplifiedChatMessage[];
 
   return compiledPrompt;
 }

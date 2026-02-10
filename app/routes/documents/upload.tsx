@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Form,
   redirect,
   useActionData,
+  useFetcher,
   useLoaderData,
   useNavigate,
 } from "react-router";
@@ -86,12 +87,14 @@ export default function DocumentUpload() {
   const { user } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   const navigate = useNavigate();
+  const uploadFetcher = useFetcher<typeof action>();
 
   const [uploadedFiles, setUploadedFiles] = useState<FormUploadFile[]>([]);
   const [sourceLanguage, setSourceLanguage] = useState("");
   const [targetLanguage, setTargetLanguage] = useState("");
   const [mode, setMode] = useState<ProcessingMode>(ProcessingMode.TRANSLATE);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isSubmitting = uploadFetcher.state === "submitting";
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -99,8 +102,6 @@ export default function DocumentUpload() {
     if (!uploadedFiles.length || !sourceLanguage || !targetLanguage || !mode) {
       return;
     }
-
-    setIsSubmitting(true);
 
     // Transform FormUploadFile[] to the expected format for processDocument
     const filesForProcessing = uploadedFiles.map((file) => ({
@@ -117,21 +118,21 @@ export default function DocumentUpload() {
     formData.set("mode", mode);
 
     // Submit the form data
-    const response = await fetch("/documents/upload", {
+    await uploadFetcher.submit(formData, {
       method: "POST",
-      body: formData,
+      unstable_defaultShouldRevalidate: false,
     });
-
-    if (response.redirected) {
-      window.location.href = response.url;
-    } else {
-      const result = await response.json();
-      if (result.error) {
-        setIsSubmitting(false);
-        // Error will be shown in actionData
-      }
-    }
   };
+
+  useEffect(() => {
+    const result = uploadFetcher.data;
+    if (!result) return;
+
+    if (result.error) {
+      console.error(result.error);
+      // toast.error(result.error);
+    }
+  }, [uploadFetcher.data]);
 
   return (
     <Layout user={user}>
@@ -244,7 +245,9 @@ export default function DocumentUpload() {
 
             {actionData?.error && (
               <div className="rounded-md bg-red-50 dark:bg-red-900/30 p-4">
-                <div className="text-sm text-red-700 dark:text-red-300">{actionData.error}</div>
+                <div className="text-sm text-red-700 dark:text-red-300">
+                  {actionData.error}
+                </div>
               </div>
             )}
 
