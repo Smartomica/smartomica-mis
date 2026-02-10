@@ -226,10 +226,7 @@ async function processDocumentAsync(documentId: string): Promise<void> {
           status: "COMPLETED",
           extractedText:
             document.mode !== ProcessingMode.OCR ? extractedText : null,
-          translatedText:
-            document.mode !== ProcessingMode.TRANSLATE
-              ? generatedContent
-              : null,
+          translatedText: generatedContent,
           tokensUsed,
           processingTimeMs: processingTime,
           completedAt: new Date(),

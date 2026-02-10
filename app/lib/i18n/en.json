@@ -120,6 +120,7 @@
       "sourceLanguageAuto": "Auto-detect",
       "targetLanguage": "Target Language",
       "mode": "Processing Mode",
+      "processing": "Processing...",
       "submit": "Upload and Process",
       "uploadFiles": "Upload {count} files",
       "selectLanguage": "Select language",
