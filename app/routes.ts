@@ -8,6 +8,7 @@ export default [
   route("documents", "routes/documents/index.tsx"),
   route("documents/upload", "routes/documents/upload.tsx"),
   route("documents/translate", "routes/documents/translate.ts"),
+  route("documents/:id", "routes/documents/$id.tsx"),
   route("documents/download/:documentId", "routes/documents/download.ts"),
   route("uploads/presigned", "routes/uploads/presigned.ts"),
   route("admin", "routes/admin/index.tsx"),

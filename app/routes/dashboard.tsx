@@ -287,7 +287,12 @@ export default function Dashboard() {
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {doc.name}
+                          <Link 
+                            to={`/documents/${doc.id}`}
+                            className="hover:underline hover:text-blue-600 dark:hover:text-blue-400"
+                          >
+                            {doc.name}
+                          </Link>
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
                           {t(`documents.mode.${doc.mode}`)} •{" "}

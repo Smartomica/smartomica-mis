@@ -14,7 +14,8 @@
     "back": "Back",
     "next": "Next",
     "upload": "Upload",
-    "download": "Download"
+    "download": "Download",
+    "view": "View"
   },
   "navigation": {
     "home": "Home",
@@ -171,6 +172,12 @@
       "translate": "Translate",
       "summarize": "Summarize",
       "ocr": "OCR"
+    },
+    "details": {
+      "subtitle": "Details and content of the document",
+      "content": "Document Content",
+      "translated": "Translated Text",
+      "original": "Extracted Original Text"
     }
   },
   "languages": {
