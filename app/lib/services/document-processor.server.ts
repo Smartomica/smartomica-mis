@@ -499,15 +499,27 @@ async function resolveMisPrompt(
 
     case ProcessingMode.TRANSLATE:
     case ProcessingMode.TRANSLATE_JUR:
-      const langPairChatPromptName = misPrompts.data
-        .filter(
-          (p) =>
-            p.type === "chat" &&
-            p.tags.includes("translate") &&
-            p.tags.includes(sourceLanguage) &&
-            p.tags.includes(targetLanguage),
-        )
-        .at(0)?.name;
+      const langPairChatPromptName =
+        misPrompts.data
+          .filter(
+            (p) =>
+              p.type === "chat" &&
+              p.tags.includes("translate") &&
+              // Require name to include smth like ru->en
+              p.name.indexOf(sourceLanguage) < p.name.indexOf(targetLanguage) &&
+              p.tags.includes(sourceLanguage) &&
+              p.tags.includes(targetLanguage),
+          )
+          .at(0)?.name ||
+        misPrompts.data
+          .filter(
+            (p) =>
+              p.type === "chat" &&
+              p.tags.includes("translate") &&
+              p.tags.includes("from-any-lang") &&
+              p.tags.includes(targetLanguage),
+          )
+          .at(0)?.name;
 
       const glossarySourceTextPromptName = misPrompts.data
         .filter((p) => p.type === "text" && p.tags.includes(sourceLanguage))
