@@ -179,28 +179,36 @@ async function processDocumentAsync(documentId: string): Promise<void> {
         input: {
           fileName: document.originalName,
           fileSize: document.fileSize,
+          filePath: document.filePath,
           sourceLanguage: document.sourceLanguage,
           targetLanguage: document.targetLanguage,
           mode: document.mode,
         },
       });
 
-      let prompt = await resolveMisPrompt(
+      // Extract text from document (simplified for now)
+      const extractedText = await extractTextFromDocument(document);
+
+      await prisma.document.update({
+        where: { id: documentId },
+        data: {
+          extractedText,
+        },
+      });
+
+      const prompt = await resolveMisPrompt(
         document.mode,
         document.sourceLanguage as Lang,
         document.targetLanguage as Lang,
       );
 
-      // Extract text from document (simplified for now)
-      const extractedText = await extractTextFromDocument(document);
-
       // Process with OpenAI
       const openai = getOpenAI({
         sessionId: `doc-${documentId}`,
-        generationName: `${document.mode}-generation`,
+        generationName: `mis-${document.mode}-generation`,
       });
 
-      let messages = [
+      const messages = [
         ...prompt,
         {
           role: "user",
@@ -215,7 +223,9 @@ async function processDocumentAsync(documentId: string): Promise<void> {
         max_tokens: 4000,
       });
 
-      const generatedContent = response.choices[0]?.message?.content || "";
+      const generatedContentString =
+        response.choices[0]?.message?.content || "";
+      const generatedContent = clearMarkdown(generatedContentString);
       const processingTime = Date.now() - startTime;
       const tokensUsed = estimateTokensUsed(extractedText, generatedContent);
 
@@ -224,8 +234,6 @@ async function processDocumentAsync(documentId: string): Promise<void> {
         where: { id: documentId },
         data: {
           status: "COMPLETED",
-          extractedText:
-            document.mode !== ProcessingMode.OCR ? extractedText : null,
           translatedText: generatedContent,
           tokensUsed,
           processingTimeMs: processingTime,
@@ -301,6 +309,28 @@ async function processDocumentAsync(documentId: string): Promise<void> {
       },
     });
   }
+}
+
+function clearMarkdown(extractedTextString: string): string {
+  let extractedText, llmError, llmComment;
+  try {
+    extractedText = new RegExp("^```json(.*)```$", "s")
+      .exec(extractedTextString)?.[1]
+      ?.trim();
+
+    const extractedObject = JSON.parse(extractedText!);
+
+    extractedText = extractedObject.text;
+    llmError = extractedObject.error;
+    llmComment = extractedObject.comment;
+  } catch (error) {
+    console.log(error);
+    extractedText = extractedTextString;
+  }
+
+  console.log({ llmError, llmComment });
+
+  return extractedText;
 }
 
 async function extractTextFromDocument(document: Document): Promise<string> {

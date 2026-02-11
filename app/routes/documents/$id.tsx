@@ -89,7 +89,7 @@ export default function DocumentDetails() {
                 <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:mt-0 sm:col-span-2">
                   <span
                     className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadge(
-                      document.status
+                      document.status,
                     )}`}
                   >
                     {t(`documents.status.${document.status}`)}
@@ -140,12 +140,13 @@ export default function DocumentDetails() {
             </div>
             <div className="border-t border-gray-200 dark:border-gray-700 px-4 py-5 sm:px-6">
               <div>
-                 <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+                <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
                   {t("documents.details.translated")}
-                 </h4>
-                 <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap text-gray-900 dark:text-gray-100">
-                   {document.translatedText}
-                 </div>
+                </h4>
+                <div
+                  dangerouslySetInnerHTML={{ __html: document.translatedText }}
+                  className="prose dark:prose-invert max-w-none whitespace-pre-wrap text-gray-900 dark:text-gray-100"
+                />
               </div>
             </div>
           </div>
