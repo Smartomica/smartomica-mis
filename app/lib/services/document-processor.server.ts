@@ -18,6 +18,7 @@ import {
   requiresOCR,
 } from "~/lib/services/ocr.server";
 import type { ChatPromptClient, TextPromptClient } from "@langfuse/client";
+import mammoth from "mammoth";
 
 const PAGES_SUBDIRECTORY = "pages";
 
@@ -353,6 +354,38 @@ async function extractTextFromDocument(document: Document): Promise<string> {
       console.log(`OCR confidence: ${ocrResult.confidence}%`);
 
       return ocrResult.extractedText;
+    } else if (
+      document.mimeType ===
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    ) {
+      // For Word documents (DOCX)
+      const fileUrl = await getFileUrl(document.filePath);
+      const response = await fetch(fileUrl);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch file: ${response.statusText}`);
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      try {
+        const result = await mammoth.extractRawText({ buffer });
+        console.log(
+          `Successfully extracted ${result.value.length} characters from Word document`,
+        );
+        if (result.messages.length > 0) {
+          console.log("Mammoth messages:", result.messages);
+        }
+        return result.value;
+      } catch (error) {
+        console.error("Mammoth extraction failed:", error);
+        throw new Error(
+          `Failed to extract text from Word document: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
+      }
+    } else if (document.mimeType === "application/msword") {
+       throw new Error("Legacy DOC format is not supported. Please convert to DOCX or PDF.");
     } else if (requiresOCR(document.mimeType)) {
       // For image files, use OCR directly
       const ocrResult = await extractTextFromImage(document.filePath);
