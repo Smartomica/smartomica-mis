@@ -31,9 +31,9 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     // For completed documents, we'll create a text file with the result
     let downloadUrl: string;
     
-    if (document.translatedText || document.extractedText) {
+    if (document.translatedText) {
       // Create a downloadable result file
-      const resultContent = document.translatedText || document.extractedText || "";
+      const resultContent = document.translatedText;
       const fileName = `${document.originalName.replace(/\.[^/.]+$/, "")}_${document.mode.toLowerCase()}_result.txt`;
       const objectName = `${user.id}/results/${document.id}/${fileName}`;
       
@@ -55,7 +55,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
       
       return response;
     } else {
-      throw new Response("No result available for download", { status: 404 });
+      throw new Response("No translated result available for download", { status: 404 });
     }
 
   } catch (error) {

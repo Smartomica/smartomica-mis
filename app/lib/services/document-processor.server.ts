@@ -137,7 +137,7 @@ export async function processDocument({
   }
 }
 
-async function processDocumentAsync(documentId: string): Promise<void> {
+export async function processDocumentAsync(documentId: string): Promise<void> {
   const startTime = Date.now();
 
   try {
@@ -356,7 +356,7 @@ async function extractTextFromDocument(document: Document): Promise<string> {
       return ocrResult.extractedText;
     } else if (
       document.mimeType ===
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     ) {
       // For Word documents (DOCX)
       const fileUrl = await getFileUrl(document.filePath);
@@ -385,7 +385,9 @@ async function extractTextFromDocument(document: Document): Promise<string> {
         );
       }
     } else if (document.mimeType === "application/msword") {
-       throw new Error("Legacy DOC format is not supported. Please convert to DOCX or PDF.");
+      throw new Error(
+        "Legacy DOC format is not supported. Please convert to DOCX or PDF.",
+      );
     } else if (requiresOCR(document.mimeType)) {
       // For image files, use OCR directly
       const ocrResult = await extractTextFromImage(document.filePath);

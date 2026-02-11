@@ -182,6 +182,7 @@
     }
   },
   "languages": {
+    "auto": "Auto",
     "en": "English",
     "ru": "Russian",
     "es": "Spanish",

@@ -23,6 +23,7 @@ export interface TranslationJob {
   updatedAt: string;
   progress?: number;
   error?: string;
+  tokensUsed?: number;
 }
 
 export interface Language {
