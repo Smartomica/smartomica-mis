@@ -315,8 +315,9 @@ export async function processDocumentAsync(documentId: string): Promise<void> {
 function clearMarkdown(extractedTextString: string): string {
   let extractedText, llmError, llmComment;
   try {
-    extractedText = new RegExp("^```json(.*)```$", "s")
-      .exec(extractedTextString)?.[1]
+    extractedText = new RegExp("^```(json|JSON)(.*)```$", "s")
+      .exec(extractedTextString)
+      ?.at(2)
       ?.trim();
 
     const extractedObject = JSON.parse(extractedText!);
@@ -329,7 +330,9 @@ function clearMarkdown(extractedTextString: string): string {
     extractedText = extractedTextString;
   }
 
-  console.log({ llmError, llmComment });
+  if (llmError) {
+    throw new Error(llmError);
+  }
 
   return extractedText;
 }
