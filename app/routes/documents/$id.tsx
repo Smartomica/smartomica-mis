@@ -146,7 +146,7 @@ export default function DocumentDetails() {
                   {t("documents.table.createdAt")}
                 </dt>
                 <dd className="mt-1 text-sm text-gray-900 dark:text-gray-100 sm:mt-0 sm:col-span-2">
-                  {new Date(document.createdAt).toLocaleString()}
+                  {new Date(document.createdAt).toLocaleString("en-US")}
                 </dd>
               </div>
             </dl>

@@ -275,7 +275,7 @@ export default function AdminDashboard() {
                       Tokens Used
                     </dt>
                     <dd className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                      {stats.totalTokensUsed.toLocaleString()}
+                      {stats.totalTokensUsed.toLocaleString("en-US")}
                     </dd>
                   </dl>
                 </div>
@@ -307,7 +307,7 @@ export default function AdminDashboard() {
                       Tokens Remaining
                     </dt>
                     <dd className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                      {stats.totalTokensRemaining.toLocaleString()}
+                      {stats.totalTokensRemaining.toLocaleString("en-US")}
                     </dd>
                   </dl>
                 </div>

@@ -1,28 +1,33 @@
 import HTMLtoDOCX from "html-to-docx";
 
 export async function generateDocx(htmlContent: string): Promise<Buffer> {
-  // Simple styling for the document
-  const header = "<p>Translated Document</p>";
-  
-  // Wrap content if it's not a full HTML document
-  const fullHtml = `
-    <!DOCTYPE html>
-    <html lang="en">
-      <head>
-        <meta charset="UTF-8" />
-        <title>Document</title>
-      </head>
-      <body>
-        ${htmlContent}
-      </body>
-    </html>
-  `;
+  // Trim content to avoid leading whitespace issues
+  const cleanContent = htmlContent.trim();
+
+  const fullHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Document</title>
+</head>
+<body>
+${cleanContent}
+</body>
+</html>`;
 
   const buffer = await HTMLtoDOCX(fullHtml, null, {
     table: { row: { cantSplit: true } },
     footer: true,
     pageNumber: true,
+    // Set standard margins (1440 twips = 1 inch) to ensure consistent layout
+    margins: {
+      top: 1440,
+      right: 1440,
+      bottom: 1440,
+      left: 1440,
+    },
   });
 
-  return buffer;
+  // Ensure returning a Buffer
+  return Buffer.isBuffer(buffer) ? buffer : Buffer.from(buffer as any);
 }

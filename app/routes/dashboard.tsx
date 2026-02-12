@@ -182,7 +182,7 @@ export default function Dashboard() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 mb-8">
-          <div className="bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 rounded-lg shadow-lg">
+          <div className="bg-linear-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 rounded-lg shadow-lg">
             <div className="p-6">
               <div className="flex items-center">
                 <div className="shrink-0">
@@ -287,7 +287,7 @@ export default function Dashboard() {
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          <Link 
+                          <Link
                             to={`/documents/${doc.id}`}
                             className="hover:underline hover:text-blue-600 dark:hover:text-blue-400"
                           >

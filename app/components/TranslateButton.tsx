@@ -4,6 +4,7 @@ import { ProcessingMode } from "~/generated/client/enums";
 import { t } from "~/lib/i18n/i18n";
 
 interface TranslateButtonProps {
+  className?: string;
   documentId: string;
   currentSourceLanguage: string;
   onTranslateStart?: () => void;
@@ -12,6 +13,7 @@ interface TranslateButtonProps {
 }
 
 export function TranslateButton({
+  className,
   documentId,
   currentSourceLanguage,
   onTranslateStart,
@@ -74,7 +76,7 @@ export function TranslateButton({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 inline-flex items-center"
+        className={`text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 inline-flex items-center ${className}`}
       >
         <svg
           className="h-4 w-4 mr-1"

@@ -98,9 +98,16 @@ export default function Documents() {
   useEffect(() => {
     const intervalId = setInterval(() => {
       // Don't revalidate if already loading or if retry fetcher is working
-      if (revalidator.state === "loading" || retryFetcher.state !== "idle") return;
+      if (revalidator.state === "loading" || retryFetcher.state !== "idle")
+        return;
 
-      if (documents.every((doc) => doc.status !== DocumentStatus.PROCESSING && doc.status !== DocumentStatus.PENDING))
+      if (
+        documents.every(
+          (doc) =>
+            doc.status !== DocumentStatus.PROCESSING &&
+            doc.status !== DocumentStatus.PENDING,
+        )
+      )
         return;
 
       revalidator.revalidate();
@@ -113,7 +120,7 @@ export default function Documents() {
     if (confirm("Are you sure you want to retry processing this document?")) {
       retryFetcher.submit(
         { documentId },
-        { method: "post", action: "/resources/retry-document" }
+        { method: "post", action: "/resources/retry-document" },
       );
     }
   };
@@ -177,7 +184,7 @@ export default function Documents() {
                         </svg>
                       </div>
                       <div className="ml-3">
-                        <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate max-w-[180px]">
+                        <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate max-w-45">
                           <Link
                             to={`/documents/${doc.id}`}
                             className="hover:text-blue-600 dark:hover:text-blue-400 hover:underline"
@@ -189,7 +196,7 @@ export default function Documents() {
                           </Link>
                         </h3>
                         {doc.files.length > 1 && (
-                          <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[180px]">
+                          <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-45">
                             {doc.files.map((f) => f.name).join(", ")}
                           </div>
                         )}
@@ -219,7 +226,7 @@ export default function Documents() {
                           {t("documents.table.createdAt")}
                         </p>
                         <p className="font-medium text-gray-900 dark:text-gray-100">
-                          {new Date(doc.createdAt).toLocaleDateString()}
+                          {new Date(doc.createdAt).toLocaleDateString("en-US")}
                         </p>
                       </div>
                     </div>
@@ -229,11 +236,11 @@ export default function Documents() {
                         Languages
                       </p>
                       <p className="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center">
-                        <span className="truncate max-w-[100px]">
+                        <span className="truncate max-w-25">
                           {t(`languages.${doc.sourceLanguage}`)}
                         </span>
                         <span className="mx-2 text-gray-400">→</span>
-                        <span className="truncate max-w-[100px]">
+                        <span className="truncate max-w-25">
                           {t(`languages.${doc.targetLanguage}`)}
                         </span>
                       </p>
@@ -365,7 +372,9 @@ export default function Documents() {
                     title={t("common.delete")}
                     onClick={() => {
                       if (
-                        confirm("Are you sure you want to delete this document?")
+                        confirm(
+                          "Are you sure you want to delete this document?",
+                        )
                       ) {
                         alert("Delete functionality would be implemented here");
                       }
