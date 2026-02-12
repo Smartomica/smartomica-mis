@@ -1,8 +1,7 @@
-import { Link, useLoaderData } from "react-router";
+import { Link } from "react-router";
 import { useState } from "react";
 import { t } from "~/lib/i18n/i18n";
 import type { User } from "~/lib/auth/session.server";
-import { DarkModeToggle } from "./DarkModeToggle";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -43,7 +42,6 @@ export function Layout({ children, user }: LayoutProps) {
             </div>
 
             <div className="hidden md:flex items-center space-x-4">
-              <DarkModeToggle />
               {user ? (
                 <div className="flex items-center space-x-4">
                   <span className="text-sm text-gray-700 dark:text-gray-300">
@@ -78,7 +76,6 @@ export function Layout({ children, user }: LayoutProps) {
             </div>
 
             <div className="flex items-center md:hidden space-x-4">
-              <DarkModeToggle />
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 type="button"
