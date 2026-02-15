@@ -1,8 +1,8 @@
 FROM node:20-alpine AS development-dependencies-env
 COPY . /app
 WORKDIR /app
-RUN npm run db:init
 RUN npm ci
+RUN npm run db:init
 
 FROM node:20-alpine AS production-dependencies-env
 COPY ./package.json package-lock.json /app/
