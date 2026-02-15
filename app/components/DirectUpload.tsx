@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useFormUpload, type FormUploadFile } from "~/hooks/useFormUpload";
+import { UploadIcon, Cross2Icon, UpdateIcon } from "@radix-ui/react-icons";
 
 interface DirectUploadProps {
   onFilesReady: (files: FormUploadFile[]) => void;
@@ -122,19 +123,7 @@ export function DirectUpload({
         />
 
         <div className="space-y-2">
-          <svg
-            className="mx-auto h-12 w-12 text-gray-400"
-            stroke="currentColor"
-            fill="none"
-            viewBox="0 0 48 48"
-          >
-            <path
-              d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <UploadIcon className="mx-auto h-12 w-12 text-gray-400" />
           <div className="text-sm text-gray-600">
             <span className="font-medium text-blue-600 hover:text-blue-500">
               Click to upload
@@ -239,19 +228,7 @@ export function DirectUpload({
                     className="shrink-0 text-gray-400 hover:text-gray-600"
                   >
                     <span className="sr-only">Remove</span>
-                    <svg
-                      className="h-4 w-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
+                    <Cross2Icon className="h-4 w-4" />
                   </button>
                 )}
               </div>
@@ -268,67 +245,17 @@ export function DirectUpload({
             >
               {isGeneratingForms ? (
                 <>
-                  <svg
-                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
+                  <UpdateIcon className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
                   Preparing...
                 </>
               ) : isUploading ? (
                 <>
-                  <svg
-                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
+                  <UpdateIcon className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" />
                   Uploading to Minio...
                 </>
               ) : (
                 <>
-                  <svg
-                    className="-ml-1 mr-2 h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"
-                    />
-                  </svg>
+                  <UploadIcon className="-ml-1 mr-2 h-5 w-5" />
                   Upload
                 </>
               )}

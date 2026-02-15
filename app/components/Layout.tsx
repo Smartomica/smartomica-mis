@@ -2,6 +2,7 @@ import { Link } from "react-router";
 import { useState } from "react";
 import { t } from "~/lib/i18n/i18n";
 import type { User } from "~/lib/auth/session.server";
+import { HamburgerMenuIcon, Cross2Icon } from "@radix-ui/react-icons";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -85,37 +86,9 @@ export function Layout({ children, user }: LayoutProps) {
               >
                 <span className="sr-only">Open main menu</span>
                 {/* Icon when menu is closed. */}
-                <svg
-                  className={`${isMenuOpen ? "hidden" : "block"} h-6 w-6`}
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
+                <HamburgerMenuIcon className={`${isMenuOpen ? "hidden" : "block"} h-6 w-6`} />
                 {/* Icon when menu is open. */}
-                <svg
-                  className={`${isMenuOpen ? "block" : "hidden"} h-6 w-6`}
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
+                <Cross2Icon className={`${isMenuOpen ? "block" : "hidden"} h-6 w-6`} />
               </button>
             </div>
           </div>
