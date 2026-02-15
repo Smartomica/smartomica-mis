@@ -10,7 +10,7 @@ export async function seedDatabase() {
       update: {
         name: "Administrator",
         role: "ADMIN" as UserRole,
-        tokensRemaining: 10000, // Admin gets more tokens
+        tokensRemaining: 1e5, // Admin gets more tokens
         lastLoginAt: new Date(),
       },
       create: {
@@ -18,7 +18,7 @@ export async function seedDatabase() {
         name: "Administrator",
         role: "ADMIN" as UserRole,
         tokensUsed: 0,
-        tokensRemaining: 10000,
+        tokensRemaining: 1e5,
         createdAt: new Date(),
         lastLoginAt: new Date(),
       },
@@ -26,19 +26,19 @@ export async function seedDatabase() {
 
     // Create demo regular user
     const demoUser = await prisma.user.upsert({
-      where: { email: "demo@smartomica.org" },
+      where: { email: "demo@smartomica.com" },
       update: {
         name: "Demo User",
         role: "USER" as UserRole,
-        tokensRemaining: 1000,
+        tokensRemaining: 1e5,
         lastLoginAt: new Date(),
       },
       create: {
-        email: "demo@smartomica.org",
+        email: "demo@smartomica.com",
         name: "Demo User",
         role: "USER" as UserRole,
         tokensUsed: 150, // Some usage history
-        tokensRemaining: 850,
+        tokensRemaining: 1e5 - 150,
         createdAt: new Date(),
         lastLoginAt: new Date(),
       },
@@ -69,7 +69,7 @@ export async function seedDatabase() {
       create: {
         id: "demo-initial-grant",
         type: "INITIAL_GRANT",
-        amount: 1000,
+        amount: 1e5,
         reason: "Initial user grant",
         userId: demoUser.id,
         createdAt: new Date(),

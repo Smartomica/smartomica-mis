@@ -8,6 +8,7 @@ import type { TranslationJob } from "~/types/document";
 import { DocumentStatus } from "~/generated/client/enums";
 import { prisma } from "~/lib/db/client";
 import { useEffect } from "react";
+import { getOriginalDocumentPreviewUrl } from "~/lib/services/document.server";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await requireUser(request);
@@ -25,38 +26,40 @@ export async function loader({ request }: Route.LoaderArgs) {
   });
 
   // Transform database documents to match the frontend type
-  const documents: TranslationJob[] = dbDocuments.map((doc) => {
-    const latestJob = doc.jobs[0];
+  const documents: TranslationJob[] = await Promise.all(
+    dbDocuments.map(async (doc) => {
+      const fileUrl = await getOriginalDocumentPreviewUrl(doc);
 
-    return {
-      id: doc.id,
-      userId: doc.userId,
-      files: [
-        {
-          id: doc.id,
-          name: doc.originalName,
-          size: doc.fileSize,
-          type: doc.mimeType,
-          url: `/files/${doc.filename}`, // This would need to be the actual file serving route
-          uploadedAt: doc.createdAt.toISOString(),
-        },
-      ],
-      sourceLanguage: doc.sourceLanguage,
-      targetLanguage: doc.targetLanguage || "",
-      mode: doc.mode,
-      status: doc.status,
-      result: doc.translatedText || doc.extractedText || undefined,
-      resultUrl:
-        doc.status === "COMPLETED"
-          ? `/documents/download/${doc.id}`
-          : undefined,
-      createdAt: doc.createdAt.toISOString(),
-      updatedAt: doc.updatedAt.toISOString(),
-      progress: calculateProgress(doc.status),
-      error: doc.errorMessage || "Unknown error",
-      tokensUsed: doc.tokensUsed || undefined,
-    };
-  });
+      return {
+        id: doc.id,
+        userId: doc.userId,
+        files: [
+          {
+            id: doc.id,
+            name: doc.originalName,
+            size: doc.fileSize,
+            type: doc.mimeType,
+            url: fileUrl,
+            uploadedAt: doc.createdAt.toISOString(),
+          },
+        ],
+        sourceLanguage: doc.sourceLanguage,
+        targetLanguage: doc.targetLanguage || "",
+        mode: doc.mode,
+        status: doc.status,
+        result: doc.translatedText || doc.extractedText || undefined,
+        resultUrl:
+          doc.status === "COMPLETED"
+            ? `/documents/download/${doc.id}`
+            : undefined,
+        createdAt: doc.createdAt.toISOString(),
+        updatedAt: doc.updatedAt.toISOString(),
+        progress: calculateProgress(doc.status),
+        error: doc.errorMessage || "Unknown error",
+        tokensUsed: doc.tokensUsed || undefined,
+      };
+    }),
+  );
 
   return { user, documents };
 }
@@ -116,14 +119,14 @@ export default function Documents() {
     return () => clearInterval(intervalId);
   }, [documents, revalidator, retryFetcher.state]);
 
-  const handleRetry = (documentId: string) => {
+  function handleRetry(documentId: string) {
     if (confirm("Are you sure you want to retry processing this document?")) {
       retryFetcher.submit(
         { documentId },
         { method: "post", action: "/resources/retry-document" },
       );
     }
-  };
+  }
 
   return (
     <Layout user={user}>
@@ -307,6 +310,37 @@ export default function Documents() {
                       />
                     </svg>
                   </Link>
+
+                  {doc.files[0].url && (
+                    <a
+                      href={doc.files[0].url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white dark:hover:bg-gray-600 rounded-full transition-colors"
+                      title="Preview original file"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
+                    </a>
+                  )}
 
                   {doc.status === DocumentStatus.COMPLETED && (
                     <>

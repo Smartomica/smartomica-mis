@@ -5,7 +5,7 @@ export interface DocumentFile {
   name: string;
   size: number;
   type: string;
-  url: string;
+  url: string | null;
   uploadedAt: string;
 }
 

@@ -11,6 +11,8 @@ import type { Route } from "./+types/root";
 import { getUser } from "~/lib/auth/session.server";
 import { MINIO_ENDPOINT, NODE_ENV } from "~/env.server";
 import "./app.css";
+import { prisma } from "./lib/db/client";
+import { seedDatabase } from "./lib/db/seed";
 
 export const meta: Route.MetaFunction = () => {
   return [
@@ -26,6 +28,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   // Initialize OpenTelemetry on server
   // Import instrumentation to ensure it runs on server startup
   await import("./instrumentation.server");
+  if ((await prisma.user.count()) === 0) await seedDatabase();
 
   return {
     user: await getUser(request),
@@ -34,10 +37,10 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export const headers: Route.HeadersFunction = () => {
   const minioUrl = new URL(MINIO_ENDPOINT);
-  const minioOrigin = `${minioUrl.protocol}//${minioUrl.hostname}${minioUrl.port ? `:${minioUrl.port}` : ''}`;
-  
-  const isDev = NODE_ENV === 'development';
-  
+  const minioOrigin = `${minioUrl.protocol}//${minioUrl.hostname}${minioUrl.port ? `:${minioUrl.port}` : ""}`;
+
+  const isDev = NODE_ENV === "development";
+
   // CSP configuration
   const csp = [
     "default-src 'self'",
