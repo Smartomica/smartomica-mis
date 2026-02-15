@@ -18,7 +18,11 @@ export async function ensureDB() {
       if (code === 0) {
         resolve();
       } else {
-        reject(new Error(`npm run db:init exited with code ${code}`));
+        reject(
+          new Error(
+            `npm run db:init exited with code ${code}: ${child.stderr.toString().trim()}`,
+          ),
+        );
       }
     });
   });
