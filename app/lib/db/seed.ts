@@ -1,8 +1,10 @@
 import "dotenv/config";
 import { prisma } from "./client";
+import { DATABASE_URL } from "~/env.server";
 import type { UserRole } from "~/generated/client/client.js";
 
 export async function seedDatabase() {
+  console.log("DB url:", DATABASE_URL);
   try {
     // Create demo admin user
     const adminUser = await prisma.user.upsert({
