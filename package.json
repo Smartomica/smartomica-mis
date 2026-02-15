@@ -7,7 +7,7 @@
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc",
-    "db:init": "prisma push && npm run db:seed",
+    "db:init": "prisma generate && npm run db:seed",
     "db:dev": "podman compose up -d postgres && npx prisma migrate dev --name init && npm run db:init",
     "db:reset": "podman compose down -v && npm run db:setup",
     "db:studio": "npx prisma studio",
