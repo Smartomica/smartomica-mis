@@ -4,8 +4,6 @@ services:
     container_name: mis
     build:
       context: .
-      args:
-        DATABASE_URL: ${DATABASE_URL:-fixme}
     depends_on:
       mis-postgres:
         condition: service_healthy
