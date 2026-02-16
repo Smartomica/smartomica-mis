@@ -1,7 +1,9 @@
 FROM node:20-alpine AS development-dependencies-env
+ARG DATABASE_URL
 COPY . /app
 WORKDIR /app
 RUN npm ci
+RUN echo $DATABASE_URL
 RUN npm run db:deploy
 
 FROM node:20-alpine AS production-dependencies-env
