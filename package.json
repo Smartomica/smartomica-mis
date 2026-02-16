@@ -13,9 +13,9 @@
     "db:reset": "podman compose down -v && npm run db:setup",
     "db:studio": "npx prisma studio",
     "db:seed": "npx tsx app/lib/db/seed.ts",
-    "docker:up": "podman compose up -d",
-    "docker:down": "podman compose down",
-    "docker:logs": "podman compose logs -f"
+    "docker:up": "source .env; podman-compose up -d --no-deps",
+    "docker:down": "podman-compose down",
+    "docker:logs": "podman-compose logs -f"
   },
   "dependencies": {
     "@langfuse/client": "^4.5.1",

@@ -8,6 +8,7 @@ services:
       mis-postgres:
         condition: service_healthy
     environment:
+      NODE_ENV: ${NODE_ENV:-production}
       DATABASE_URL: ${DATABASE_URL:-fixme}
       UTILS_BASE_URL: ${UTILS_BASE_URL:-fixme}
       LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-fixme}
