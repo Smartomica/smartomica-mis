@@ -27,8 +27,21 @@ export function DirectUpload({
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
   const handleFileSelect = async (fileList: FileList) => {
     if (disabled || fileList.length === 0) return;
+
+    // Check if any file exceeds the size limit
+    const oversizedFile = Array.from(fileList).find(
+      (file) => file.size > MAX_FILE_SIZE,
+    );
+    if (oversizedFile) {
+      setUploadError(
+        `File "${oversizedFile.name}" exceeds the 10MB size limit.`,
+      );
+      return;
+    }
 
     try {
       setUploadError(null);

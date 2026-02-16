@@ -154,7 +154,7 @@ export default function DocumentUpload() {
             onSubmit={handleSubmit}
             className="p-6"
           >
-            <fieldset className="space-y-6" disabled={isSubmitting}>
+            <fieldset className="contents space-y-6" disabled={isSubmitting}>
               {/* File Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
