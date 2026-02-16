@@ -13,8 +13,8 @@ export interface User {
 
 // Hard-coded passwords for demo accounts - replace with OAuth later
 const DEMO_PASSWORDS = {
-  "admin@smartomica.org": "admin123",
-  "peled@smartomica.org": "peled123",
+  "boris.valdman@smartomica.com": "zTX6iJsgo86w4HMWRjHu@u!U", // Do not worry, it is unique
+  "demo@smartomica.com": "demo123demo123",
 };
 
 export const sessionStorage = createCookieSessionStorage({
