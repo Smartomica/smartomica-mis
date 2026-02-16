@@ -1,10 +1,7 @@
 FROM node:20-alpine AS development-dependencies-env
-ARG DATABASE_URL
 COPY . /app
 WORKDIR /app
 RUN npm ci
-RUN echo $DATABASE_URL
-RUN npm run db:deploy
 
 FROM node:20-alpine AS production-dependencies-env
 COPY ./package.json package-lock.json /app/
@@ -12,9 +9,12 @@ WORKDIR /app
 RUN npm ci --omit=dev
 
 FROM node:20-alpine AS build-env
+ARG DATABASE_URL
+ENV DATABASE_URL $DATABASE_URL
 COPY . /app/
 COPY --from=development-dependencies-env /app/node_modules /app/node_modules
 WORKDIR /app
+RUN npm run db:deploy
 RUN npm run build
 
 FROM node:20-alpine

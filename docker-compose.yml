@@ -1,56 +1,70 @@
 services:
-  postgres:
+  mis:
+    restart: unless-stopped
+    container_name: mis
+    build:
+      context: .
+      args:
+        DATABASE_URL: ${DATABASE_URL:-fixme}
+    depends_on:
+      mis-postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-fixme}
+      UTILS_BASE_URL: ${UTILS_BASE_URL:-fixme}
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-fixme}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-fixme}
+      LANGFUSE_BASE_URL: ${LANGFUSE_BASE_URL:-fixme}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-fixme}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-fixme}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-fixme}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-fixme}
+      MINIO_BUCKET: ${MINIO_BUCKET:-fixme}
+      SESSION_SECRET: ${SESSION_SECRET:-fixme}
+    networks:
+      - mis
+
+  mis-postgres:
+    container_name: mis-postgres
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: smartomica_mis
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
+      POSTGRES_DB: ${POSTGRES_DB:-fixme}
+      POSTGRES_USER: ${POSTGRES_USER:-fixme}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fixme}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mis_postgres_data:/var/lib/postgresql/data
       - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d smartomica_mis"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - mis
 
   # Optional: Add pgAdmin for database management
-  pgadmin:
+  mis-pgadmin:
+    container_name: mis-pgadmin
     image: dpage/pgadmin4:latest
     restart: unless-stopped
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@smartomica.org
-      PGADMIN_DEFAULT_PASSWORD: admin123
-      PGADMIN_CONFIG_SERVER_MODE: "False"
-    ports:
-      - "8080:80"
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-fixme}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-fixme}
+      PGADMIN_CONFIG_SERVER_MODE: ${PGADMIN_CONFIG_SERVER_MODE:-fixme}
     depends_on:
       postgres:
         condition: service_healthy
     volumes:
-      - pgadmin_data:/var/lib/pgadmin
+      - mis_pgadmin_data:/var/lib/pgadmin
+    networks:
+      - mis
 
-  # Optional: Redis for caching/queues (for future use)
-  redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    command: redis-server --appendonly yes
-
-  utils-http:
-    container_name: utils-http
-    build: ../smartomica-utils-http
-    restart: unless-stopped
-    ports:
-      - 8765:80
+networks:
+  mis:
+    name: mis
+    driver: bridge
 
 volumes:
-  postgres_data:
-  pgadmin_data:
-  redis_data:
+  mis_postgres_data:
+  mis_pgadmin_data:
