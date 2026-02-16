@@ -1,6 +1,7 @@
 import { createCookieSessionStorage, redirect } from "react-router";
 import { SESSION_SECRET } from "~/env.server";
 import { prisma } from "~/lib/db/client";
+import { ADMIN_EMAIL, DEMO_EMAIL } from "~/lib/db/seed";
 
 export interface User {
   id: string;
@@ -13,8 +14,8 @@ export interface User {
 
 // Hard-coded passwords for demo accounts - replace with OAuth later
 const DEMO_PASSWORDS = {
-  "boris.valdman@smartomica.com": "zTX6iJsgo86w4HMWRjHu@u!U", // Do not worry, it is unique
-  "demo@smartomica.com": "demo123demo123",
+  [ADMIN_EMAIL]: "zTX6iJsgo86w4HMWRjHu@u!U", // Do not worry, it is unique
+  [DEMO_EMAIL]: "demo123demo123",
 };
 
 export const sessionStorage = createCookieSessionStorage({

@@ -3,12 +3,15 @@ import { prisma } from "./client";
 import { DATABASE_URL } from "~/env.server";
 import type { UserRole } from "~/generated/client/client.js";
 
+export const ADMIN_EMAIL = "boris.valdman@smartomica.com";
+export const DEMO_EMAIL = "demo@smartomica.com";
+
 export async function seedDatabase() {
   console.log("DB url:", DATABASE_URL);
   try {
     // Create demo admin user
     const adminUser = await prisma.user.upsert({
-      where: { email: "admin@smartomica.org" },
+      where: { email: ADMIN_EMAIL },
       update: {
         name: "Administrator",
         role: "ADMIN" as UserRole,
@@ -16,7 +19,7 @@ export async function seedDatabase() {
         lastLoginAt: new Date(),
       },
       create: {
-        email: "admin@smartomica.org",
+        email: ADMIN_EMAIL,
         name: "Administrator",
         role: "ADMIN" as UserRole,
         tokensUsed: 0,
@@ -28,7 +31,7 @@ export async function seedDatabase() {
 
     // Create demo regular user
     const demoUser = await prisma.user.upsert({
-      where: { email: "demo@smartomica.com" },
+      where: { email: DEMO_EMAIL },
       update: {
         name: "Demo User",
         role: "USER" as UserRole,
@@ -36,7 +39,7 @@ export async function seedDatabase() {
         lastLoginAt: new Date(),
       },
       create: {
-        email: "demo@smartomica.com",
+        email: DEMO_EMAIL,
         name: "Demo User",
         role: "USER" as UserRole,
         tokensUsed: 150, // Some usage history
