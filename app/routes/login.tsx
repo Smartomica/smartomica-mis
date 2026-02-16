@@ -95,20 +95,15 @@ export default function Login() {
             <div className="text-center">
               <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                 {t("auth.signIn.noAccount")}{" "}
-                <a href="mailto:admin@smartomica.org" className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300">
+                <a
+                  href="mailto:admin@smartomica.org"
+                  className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300"
+                >
                   {t("auth.signIn.signUpLink")}
                 </a>
               </p>
             </div>
           </Form>
-          
-          <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-md">
-            <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">Demo Accounts:</h3>
-            <div className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
-              <div>Admin: admin@smartomica.org / admin123</div>
-              <div>User: user@smartomica.org / user123</div>
-            </div>
-          </div>
         </div>
       </div>
     </Layout>
