@@ -53,7 +53,7 @@ services:
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-fixme}
       PGADMIN_CONFIG_SERVER_MODE: ${PGADMIN_CONFIG_SERVER_MODE:-fixme}
     depends_on:
-      postgres:
+      mis-postgres:
         condition: service_healthy
     volumes:
       - mis_pgadmin_data:/var/lib/pgadmin
