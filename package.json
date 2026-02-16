@@ -13,7 +13,7 @@
     "db:reset": "podman compose down -v && npm run db:setup",
     "db:studio": "npx prisma studio",
     "db:seed": "npx tsx app/lib/db/seed.ts",
-    "docker:up": "source .env; podman-compose up -d --no-deps",
+    "docker:up": "source .env; podman-compose -f docker-compose.dev.yml up -d --no-deps",
     "docker:down": "podman-compose down",
     "docker:logs": "podman-compose logs -f"
   },
