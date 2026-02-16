@@ -2,10 +2,7 @@ FROM node:20-alpine AS development-dependencies-env
 COPY . /app
 WORKDIR /app
 RUN npm ci
-RUN npx prisma generate
-RUN npm run build
-RUN npx prisma migrate deploy
-RUN npx prisma migrate status
+RUN npm run db:deploy
 
 FROM node:20-alpine AS production-dependencies-env
 COPY ./package.json package-lock.json /app/
