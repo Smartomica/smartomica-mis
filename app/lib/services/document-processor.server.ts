@@ -15,6 +15,8 @@ import { NeverError } from "~/lib/error";
 import {
   requiresOCR,
   pdfToImages,
+  extractTextFromImage,
+  extractTextFromPDF,
   extractDirectPDFText,
 } from "~/lib/services/ocr.server";
 import type { ChatPromptClient, TextPromptClient } from "@langfuse/client";
@@ -174,6 +176,8 @@ export async function processDocumentAsync(documentId: string): Promise<void> {
     });
 
     await startActiveObservation(`document-${document.mode}`, async (span) => {
+      const sessionId = `doc-${documentId}`;
+
       span.updateTrace({
         sessionId: `doc-${documentId}`,
         tags: [document.mode],
@@ -191,12 +195,12 @@ export async function processDocumentAsync(documentId: string): Promise<void> {
 
       // Process with OpenAI
       const openai = getOpenAI({
-        sessionId: `doc-${documentId}`,
+        sessionId,
         generationName: `mis-${document.mode}-generation`,
       });
 
       // Extract text from document (simplified for now)
-      const extractedText = await extractTextFromDocument(document, openai);
+      const extractedText = await extractTextFromDocument(document, sessionId);
 
       await prisma.document.update({
         where: { id: documentId },
@@ -341,8 +345,13 @@ function clearMarkdown(extractedTextString: string): string {
 
 async function extractTextFromDocument(
   document: Document,
-  openai: OpenAI,
+  sessionId: string,
 ): Promise<string> {
+  const openAi = getOpenAI({
+    sessionId,
+    generationName: "document-text-extraction",
+  });
+
   try {
     console.log(
       `Extracting text from ${document.originalName} (${document.mimeType})`,
@@ -352,26 +361,38 @@ async function extractTextFromDocument(
     if (document.mimeType === "application/pdf") {
       // For PDFs, use our OCR service which handles both direct text and scanned PDFs
       // Try direct text extraction first (faster and cheaper)
-      const directText =
-        LOCAL_MODE && (await extractDirectPDFText(document.filePath));
+      const directText = await extractDirectPDFText(document.filePath);
 
       if (directText && directText.trim().length > 50) {
         console.log("Successfully extracted text directly from PDF");
         return directText;
       }
 
+      if (LOCAL_MODE) {
+        const { extractedText, confidence } = await extractTextFromPDF(
+          document.filePath,
+          PAGES_SUBDIRECTORY,
+        );
+        if (Number.isFinite(confidence) && Number(confidence) > 90) {
+          console.log("Successfully extracted text from PDF");
+          return extractedText;
+        }
+        throw new Error("Failed to extract text from PDF via OCR");
+      }
+
       console.log(
         "Direct extraction insufficient, using OpenAI Vision for PDF pages...",
       );
+
       const pagesDir = join(dirname(document.filePath), PAGES_SUBDIRECTORY);
       const images = await pdfToImages(document.filePath, pagesDir);
+      const imageUrls = await Promise.all(
+        images.map((image) => getFileUrl(image.fileName)),
+      );
 
       console.log(`Converted PDF to ${images.length} images`);
 
-      const fullText = await extractTextWithOpenAI(
-        openai,
-        ...images.map((image) => join(PAGES_SUBDIRECTORY, image.fileName)),
-      );
+      const fullText = await extractTextWithOpenAI(openAi, ...imageUrls);
 
       return fullText;
     } else if (
@@ -409,11 +430,22 @@ async function extractTextFromDocument(
         "Legacy DOC format is not supported. Please convert to DOCX or PDF.",
       );
     } else if (requiresOCR(document.mimeType)) {
+      if (LOCAL_MODE) {
+        console.log("Using OCR for image...");
+        const fileUrl = await getFileUrl(document.filePath);
+        const { extractedText, confidence } =
+          await extractTextFromImage(fileUrl);
+
+        if (Number.isFinite(confidence) && Number(confidence) > 80)
+          return extractedText;
+        else console.log(`OCR confidence too low: ${confidence}%`);
+      }
+
       // For image files, use OCR directly
       console.log("Using OpenAI Vision for image...");
       const fileUrl = await getFileUrl(document.filePath);
 
-      return await extractTextWithOpenAI(openai, fileUrl);
+      return await extractTextWithOpenAI(openAi, fileUrl);
     } else {
       // For text-based files or unsupported formats
       const fileUrl = await getFileUrl(document.filePath);
