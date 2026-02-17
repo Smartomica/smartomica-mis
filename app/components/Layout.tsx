@@ -19,6 +19,7 @@ export function Layout({ children, user }: LayoutProps) {
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <Link to="/" className="shrink-0 flex items-center">
+                <svg href="/public/smartomica.svg" className="" />
                 <h1 className="text-xl font-bold text-blue-600 dark:text-blue-400">
                   {t("common.appName")}
                 </h1>
@@ -86,9 +87,13 @@ export function Layout({ children, user }: LayoutProps) {
               >
                 <span className="sr-only">Open main menu</span>
                 {/* Icon when menu is closed. */}
-                <HamburgerMenuIcon className={`${isMenuOpen ? "hidden" : "block"} h-6 w-6`} />
+                <HamburgerMenuIcon
+                  className={`${isMenuOpen ? "hidden" : "block"} h-6 w-6`}
+                />
                 {/* Icon when menu is open. */}
-                <Cross2Icon className={`${isMenuOpen ? "block" : "hidden"} h-6 w-6`} />
+                <Cross2Icon
+                  className={`${isMenuOpen ? "block" : "hidden"} h-6 w-6`}
+                />
               </button>
             </div>
           </div>
