@@ -19,7 +19,6 @@ export function Layout({ children, user }: LayoutProps) {
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <Link to="/" className="shrink-0 flex items-center">
-                <svg href="/public/smartomica.svg" className="" />
                 <h1 className="text-xl font-bold text-blue-600 dark:text-blue-400">
                   {t("common.appName")}
                 </h1>
