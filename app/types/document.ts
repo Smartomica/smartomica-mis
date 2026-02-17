@@ -52,11 +52,11 @@ export const PROCESSING_MODES: {
   },
   [ProcessingMode.TRANSLATE]: {
     label: "Translate",
-    description: "Translate document to target language",
+    description: "Translate a document to target language",
   },
   [ProcessingMode.TRANSLATE_JUR]: {
-    label: "Translate Jurisdical",
-    description: "Translate document to target jurisdiction",
+    label: "Translate Legal",
+    description: "Translate a legal document",
   },
   [ProcessingMode.SUMMARISE]: {
     label: "Summarize",

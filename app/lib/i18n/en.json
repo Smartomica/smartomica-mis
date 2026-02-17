@@ -138,8 +138,8 @@
         "description": "Extract text from images"
       },
       "TRANSLATE": {
-        "label": "Translate Jurisdical",
-        "description": "Translate document to target jurisdiction"
+        "label": "Translate Legal",
+        "description": "Translate a legal document"
       },
       "TRANSLATE_JUR": {
         "label": "Translate Juridical",
