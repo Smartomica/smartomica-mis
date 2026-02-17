@@ -13,12 +13,14 @@ import { type Document, type DocumentStatus } from "~/lib/db/client";
 import { JobType, ProcessingMode } from "~/generated/client/enums";
 import { NeverError } from "~/lib/error";
 import {
-  extractTextFromImage,
-  extractTextFromPDF,
   requiresOCR,
+  pdfToImages,
+  extractDirectPDFText,
 } from "~/lib/services/ocr.server";
 import type { ChatPromptClient, TextPromptClient } from "@langfuse/client";
 import mammoth from "mammoth";
+import type OpenAI from "openai";
+import { LOCAL_MODE } from "~/env.server";
 
 const PAGES_SUBDIRECTORY = "pages";
 
@@ -187,8 +189,14 @@ export async function processDocumentAsync(documentId: string): Promise<void> {
         },
       });
 
+      // Process with OpenAI
+      const openai = getOpenAI({
+        sessionId: `doc-${documentId}`,
+        generationName: `mis-${document.mode}-generation`,
+      });
+
       // Extract text from document (simplified for now)
-      const extractedText = await extractTextFromDocument(document);
+      const extractedText = await extractTextFromDocument(document, openai);
 
       await prisma.document.update({
         where: { id: documentId },
@@ -202,12 +210,6 @@ export async function processDocumentAsync(documentId: string): Promise<void> {
         document.sourceLanguage as Lang,
         document.targetLanguage as Lang,
       );
-
-      // Process with OpenAI
-      const openai = getOpenAI({
-        sessionId: `doc-${documentId}`,
-        generationName: `mis-${document.mode}-generation`,
-      });
 
       const messages = [
         ...prompt,
@@ -337,7 +339,10 @@ function clearMarkdown(extractedTextString: string): string {
   return extractedText;
 }
 
-async function extractTextFromDocument(document: Document): Promise<string> {
+async function extractTextFromDocument(
+  document: Document,
+  openai: OpenAI,
+): Promise<string> {
   try {
     console.log(
       `Extracting text from ${document.originalName} (${document.mimeType})`,
@@ -346,17 +351,29 @@ async function extractTextFromDocument(document: Document): Promise<string> {
     // Handle different file types
     if (document.mimeType === "application/pdf") {
       // For PDFs, use our OCR service which handles both direct text and scanned PDFs
-      const ocrResult = await extractTextFromPDF(
-        document.filePath,
-        join(dirname(document.filePath), PAGES_SUBDIRECTORY),
-      );
+      // Try direct text extraction first (faster and cheaper)
+      const directText =
+        LOCAL_MODE && (await extractDirectPDFText(document.filePath));
+
+      if (directText && directText.trim().length > 50) {
+        console.log("Successfully extracted text directly from PDF");
+        return directText;
+      }
 
       console.log(
-        `Successfully extracted ${ocrResult.extractedText.length} characters from PDF`,
+        "Direct extraction insufficient, using OpenAI Vision for PDF pages...",
       );
-      console.log(`OCR confidence: ${ocrResult.confidence}%`);
+      const pagesDir = join(dirname(document.filePath), PAGES_SUBDIRECTORY);
+      const images = await pdfToImages(document.filePath, pagesDir);
 
-      return ocrResult.extractedText;
+      console.log(`Converted PDF to ${images.length} images`);
+
+      const fullText = await extractTextWithOpenAI(
+        openai,
+        ...images.map((image) => join(PAGES_SUBDIRECTORY, image.fileName)),
+      );
+
+      return fullText;
     } else if (
       document.mimeType ===
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -393,14 +410,10 @@ async function extractTextFromDocument(document: Document): Promise<string> {
       );
     } else if (requiresOCR(document.mimeType)) {
       // For image files, use OCR directly
-      const ocrResult = await extractTextFromImage(document.filePath);
+      console.log("Using OpenAI Vision for image...");
+      const fileUrl = await getFileUrl(document.filePath);
 
-      console.log(
-        `Successfully extracted ${ocrResult.extractedText.length} characters from image`,
-      );
-      console.log(`OCR confidence: ${ocrResult.confidence}%`);
-
-      return ocrResult.extractedText;
+      return await extractTextWithOpenAI(openai, fileUrl);
     } else {
       // For text-based files or unsupported formats
       const fileUrl = await getFileUrl(document.filePath);
@@ -630,4 +643,37 @@ function combinePrompts(
   );
 
   return [...combinedPrompt, ...combinedTextPrompts];
+}
+
+async function extractTextWithOpenAI(
+  openai: OpenAI,
+  ...imageUrls: string[]
+): Promise<string> {
+  const imageMessages = imageUrls.map(function (imageUrl) {
+    return {
+      type: "image_url",
+      image_url: {
+        url: imageUrl,
+      },
+    } as const;
+  });
+
+  const response = await openai.chat.completions.create({
+    model: "openai/gpt-4o",
+    messages: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "text",
+            text: "Extract all text from this image(s). Return only the extracted text, no markdown formatting or comments. Only in the original languages. No complicated guesses. Use - instead",
+          },
+          ...imageMessages,
+        ],
+      },
+    ],
+    max_tokens: 4000,
+  });
+
+  return response.choices[0]?.message?.content || "";
 }

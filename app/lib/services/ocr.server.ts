@@ -101,7 +101,7 @@ export async function extractTextFromPDF(
   }
 }
 
-async function extractDirectPDFText(filePath: string): Promise<string> {
+export async function extractDirectPDFText(filePath: string): Promise<string> {
   try {
     // Get file URL from Minio
     const fileUrl = await getFileUrl(filePath);
@@ -186,7 +186,7 @@ async function createTesseractWorker() {
   return worker;
 }
 
-async function pdfToImages(
+export async function pdfToImages(
   filePath: string,
   pagesDirectory: string,
 ): Promise<{ fileName: string; buffer: Buffer }[]> {

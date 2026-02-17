@@ -8,6 +8,7 @@ function getEnv(name: string): string {
   return value;
 }
 
+export const LOCAL_MODE = getEnv("LOCAL_MODE")?.toLowerCase() === "true";
 export const DATABASE_URL = getEnv("DATABASE_URL");
 export const UTILS_BASE_URL = getEnv("UTILS_BASE_URL");
 
