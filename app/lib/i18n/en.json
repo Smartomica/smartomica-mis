@@ -142,8 +142,8 @@
         "description": "Translate a legal document"
       },
       "TRANSLATE_JUR": {
-        "label": "Translate Juridical",
-        "description": "Translate juridical document"
+        "label": "Translate Legal",
+        "description": "Translate a legal document"
       },
       "SUMMARISE": {
         "label": "Summarize",
