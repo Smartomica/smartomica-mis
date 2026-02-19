@@ -28,6 +28,35 @@ services:
     networks:
       - mis
 
+  mis-dev:
+    restart: unless-stopped
+    container_name: mis-dev
+    build:
+      context: .
+    depends_on:
+      mis-postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      DATABASE_URL: ${DATABASE_URL:-fixme}
+      UTILS_BASE_URL: ${UTILS_BASE_URL:-fixme}
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-fixme}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-fixme}
+      LANGFUSE_BASE_URL: ${LANGFUSE_BASE_URL:-fixme}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-fixme}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-fixme}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-fixme}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-fixme}
+      MINIO_BUCKET: ${MINIO_BUCKET:-fixme}
+      SESSION_SECRET: ${SESSION_SECRET:-fixme}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - mis
+
   mis-postgres:
     container_name: mis-postgres
     image: postgres:16-alpine
