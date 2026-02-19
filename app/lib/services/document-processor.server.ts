@@ -153,7 +153,10 @@ export async function processDocument({
   }
 }
 
-export async function processBatchAsync(batchId: string, userId: string): Promise<void> {
+export async function processBatchAsync(
+  batchId: string,
+  userId: string,
+): Promise<void> {
   const startTime = Date.now();
 
   try {
@@ -169,13 +172,13 @@ export async function processBatchAsync(batchId: string, userId: string): Promis
 
     const { documents } = batch;
     if (documents.length === 0) {
-        throw new Error("No documents in batch");
+      throw new Error("No documents in batch");
     }
 
     // Update batch and documents status to PROCESSING
     await prisma.documentBatch.update({
-        where: { id: batchId },
-        data: { status: "PROCESSING" },
+      where: { id: batchId },
+      data: { status: "PROCESSING" },
     });
 
     await prisma.document.updateMany({
@@ -199,7 +202,7 @@ export async function processBatchAsync(batchId: string, userId: string): Promis
           sourceLanguage,
           targetLanguage,
           mode,
-          documentIds: documents.map(d => d.id),
+          documentIds: documents.map((d) => d.id),
         },
       },
     });
@@ -213,7 +216,7 @@ export async function processBatchAsync(batchId: string, userId: string): Promis
       });
       span.update({
         input: {
-          files: documents.map(d => d.originalName),
+          files: documents.map((d) => d.originalName),
           totalSize: documents.reduce((acc, d) => acc + d.fileSize, 0),
           sourceLanguage,
           targetLanguage,
@@ -228,21 +231,26 @@ export async function processBatchAsync(batchId: string, userId: string): Promis
 
       // 1. Extract text from ALL documents (parallel)
       const extractionResults = await Promise.all(
-          documents.map(async (doc) => {
-              const text = await extractTextFromDocument(doc, sessionId);
-              // Update individual document with extracted text
-              await prisma.document.update({
-                  where: { id: doc.id },
-                  data: { extractedText: text },
-              });
-              return { doc, text };
-          })
+        documents.map(async (doc) => {
+          const text = await extractTextFromDocument(doc, sessionId);
+          // Update individual document with extracted text
+          await prisma.document.update({
+            where: { id: doc.id },
+            data: { extractedText: text },
+          });
+          return { doc, text };
+        }),
       );
 
-      // Combine extracted text
-      const combinedExtractedText = extractionResults
-          .map(({ doc, text }) => `--- Document: ${doc.originalName} ---\n${text}`)
-          .join("\n\n");
+      const sortedExtractionResults = extractionResults.sort((a, b) =>
+        a.doc.originalName.localeCompare(b.doc.originalName),
+      );
+
+      const combinedExtractedText = sortedExtractionResults
+        .map(
+          ({ doc, text }) => `--- Document: ${doc.originalName} ---\n${text}`,
+        )
+        .join("\n\n");
 
       // 2. Resolve Prompt
       const prompt = await resolveMisPrompt(
@@ -271,33 +279,36 @@ export async function processBatchAsync(batchId: string, userId: string): Promis
         response.choices[0]?.message?.content || "";
       const generatedContent = clearMarkdown(generatedContentString);
       const processingTime = Date.now() - startTime;
-      const tokensUsed = estimateTokensUsed(combinedExtractedText, generatedContent);
+      const tokensUsed = estimateTokensUsed(
+        combinedExtractedText,
+        generatedContent,
+      );
 
       // 4. Save results to Batch and update Job
       // Update batch
       await prisma.documentBatch.update({
-          where: { id: batchId },
-          data: {
-              status: "COMPLETED",
-              combinedResult: generatedContent,
-          }
+        where: { id: batchId },
+        data: {
+          status: "COMPLETED",
+          combinedResult: generatedContent,
+        },
       });
-      
+
       // Also update individual documents to COMPLETED, storing the same generated content?
-      // The prompt says "produce ONE translation/summary". 
-      // We can store it in the batch. 
+      // The prompt says "produce ONE translation/summary".
+      // We can store it in the batch.
       // Individual documents might just stay as COMPLETED.
       // Or we can copy the result to each document just in case the UI expects it there?
       // Let's copy it to make sure the UI works if it looks at individual documents.
       await prisma.document.updateMany({
-          where: { batchId },
-          data: {
-              status: "COMPLETED",
-              translatedText: generatedContent, // Or maybe "See Batch Result"? Let's verify what UI expects.
-              tokensUsed: Math.ceil(tokensUsed / documents.length), // Distribute tokens?
-              processingTimeMs: Math.ceil(processingTime / documents.length),
-              completedAt: new Date(),
-          }
+        where: { batchId },
+        data: {
+          status: "COMPLETED",
+          translatedText: generatedContent, // Or maybe "See Batch Result"? Let's verify what UI expects.
+          tokensUsed: Math.ceil(tokensUsed / documents.length), // Distribute tokens?
+          processingTimeMs: Math.ceil(processingTime / documents.length),
+          completedAt: new Date(),
+        },
       });
 
       await prisma.processingJob.update({
@@ -346,10 +357,10 @@ export async function processBatchAsync(batchId: string, userId: string): Promis
 
     // Update batch, documents and job with error
     await prisma.documentBatch.update({
-        where: { id: batchId },
-        data: { status: "FAILED" }
+      where: { id: batchId },
+      data: { status: "FAILED" },
     });
-    
+
     await prisma.document.updateMany({
       where: { batchId },
       data: {
@@ -375,28 +386,28 @@ export async function processBatchAsync(batchId: string, userId: string): Promis
 
 // Kept for backward compatibility if needed, but not exported anymore if not used elsewhere
 export async function processDocumentAsync(documentId: string): Promise<void> {
-    // This function is now deprecated in favor of processBatchAsync
-    // but we can implement it by finding the batch and processing it.
-    const doc = await prisma.document.findUnique({where: {id: documentId}});
-    if (!doc) throw new Error("Document not found");
+  // This function is now deprecated in favor of processBatchAsync
+  // but we can implement it by finding the batch and processing it.
+  const doc = await prisma.document.findUnique({ where: { id: documentId } });
+  if (!doc) throw new Error("Document not found");
 
-    if (doc.batchId) {
-        return processBatchAsync(doc.batchId, doc.userId);
-    } else {
-        // Create a batch for this single document if it doesn't have one
-        const batchId = randomUUID();
-        await prisma.documentBatch.create({
-            data: {
-                id: batchId,
-                mode: doc.mode,
-                status: "PENDING",
-                documents: {
-                    connect: { id: documentId }
-                }
-            }
-        });
-        return processBatchAsync(batchId, doc.userId);
-    }
+  if (doc.batchId) {
+    return processBatchAsync(doc.batchId, doc.userId);
+  } else {
+    // Create a batch for this single document if it doesn't have one
+    const batchId = randomUUID();
+    await prisma.documentBatch.create({
+      data: {
+        id: batchId,
+        mode: doc.mode,
+        status: "PENDING",
+        documents: {
+          connect: { id: documentId },
+        },
+      },
+    });
+    return processBatchAsync(batchId, doc.userId);
+  }
 }
 
 function clearMarkdown(extractedTextString: string): string {
@@ -449,10 +460,17 @@ async function extractTextFromDocument(
         return directText;
       }
 
+      // Create a unique directory for this document's pages to avoid collisions in parallel processing
+      const pagesDir = join(
+        dirname(document.filePath),
+        PAGES_SUBDIRECTORY,
+        document.id,
+      );
+
       if (LOCAL_MODE) {
         const { extractedText, confidence } = await extractTextFromPDF(
           document.filePath,
-          PAGES_SUBDIRECTORY,
+          pagesDir,
         );
         if (Number.isFinite(confidence) && Number(confidence) > 90) {
           console.log("Successfully extracted text from PDF");
@@ -465,7 +483,6 @@ async function extractTextFromDocument(
         "Direct extraction insufficient, using OpenAI Vision for PDF pages...",
       );
 
-      const pagesDir = join(dirname(document.filePath), PAGES_SUBDIRECTORY);
       const images = await pdfToImages(document.filePath, pagesDir);
       const imageUrls = await Promise.all(
         images.map((image) => getFileUrl(image.fileName)),
