@@ -61,6 +61,7 @@ export type DocumentMinAggregateOutputType = {
   updatedAt: Date | null
   completedAt: Date | null
   userId: string | null
+  batchId: string | null
 }
 
 export type DocumentMaxAggregateOutputType = {
@@ -84,6 +85,7 @@ export type DocumentMaxAggregateOutputType = {
   updatedAt: Date | null
   completedAt: Date | null
   userId: string | null
+  batchId: string | null
 }
 
 export type DocumentCountAggregateOutputType = {
@@ -107,6 +109,7 @@ export type DocumentCountAggregateOutputType = {
   updatedAt: number
   completedAt: number
   userId: number
+  batchId: number
   _all: number
 }
 
@@ -146,6 +149,7 @@ export type DocumentMinAggregateInputType = {
   updatedAt?: true
   completedAt?: true
   userId?: true
+  batchId?: true
 }
 
 export type DocumentMaxAggregateInputType = {
@@ -169,6 +173,7 @@ export type DocumentMaxAggregateInputType = {
   updatedAt?: true
   completedAt?: true
   userId?: true
+  batchId?: true
 }
 
 export type DocumentCountAggregateInputType = {
@@ -192,6 +197,7 @@ export type DocumentCountAggregateInputType = {
   updatedAt?: true
   completedAt?: true
   userId?: true
+  batchId?: true
   _all?: true
 }
 
@@ -302,6 +308,7 @@ export type DocumentGroupByOutputType = {
   updatedAt: Date
   completedAt: Date | null
   userId: string
+  batchId: string | null
   _count: DocumentCountAggregateOutputType | null
   _avg: DocumentAvgAggregateOutputType | null
   _sum: DocumentSumAggregateOutputType | null
@@ -348,8 +355,10 @@ export type DocumentWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Document"> | Date | string
   completedAt?: Prisma.DateTimeNullableFilter<"Document"> | Date | string | null
   userId?: Prisma.StringFilter<"Document"> | string
+  batchId?: Prisma.StringNullableFilter<"Document"> | string | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   jobs?: Prisma.ProcessingJobListRelationFilter
+  batch?: Prisma.XOR<Prisma.DocumentBatchNullableScalarRelationFilter, Prisma.DocumentBatchWhereInput> | null
 }
 
 export type DocumentOrderByWithRelationInput = {
@@ -373,8 +382,10 @@ export type DocumentOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   userId?: Prisma.SortOrder
+  batchId?: Prisma.SortOrderInput | Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
   jobs?: Prisma.ProcessingJobOrderByRelationAggregateInput
+  batch?: Prisma.DocumentBatchOrderByWithRelationInput
 }
 
 export type DocumentWhereUniqueInput = Prisma.AtLeast<{
@@ -401,8 +412,10 @@ export type DocumentWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Document"> | Date | string
   completedAt?: Prisma.DateTimeNullableFilter<"Document"> | Date | string | null
   userId?: Prisma.StringFilter<"Document"> | string
+  batchId?: Prisma.StringNullableFilter<"Document"> | string | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   jobs?: Prisma.ProcessingJobListRelationFilter
+  batch?: Prisma.XOR<Prisma.DocumentBatchNullableScalarRelationFilter, Prisma.DocumentBatchWhereInput> | null
 }, "id">
 
 export type DocumentOrderByWithAggregationInput = {
@@ -426,6 +439,7 @@ export type DocumentOrderByWithAggregationInput = {
   updatedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   userId?: Prisma.SortOrder
+  batchId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.DocumentCountOrderByAggregateInput
   _avg?: Prisma.DocumentAvgOrderByAggregateInput
   _max?: Prisma.DocumentMaxOrderByAggregateInput
@@ -457,6 +471,7 @@ export type DocumentScalarWhereWithAggregatesInput = {
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Document"> | Date | string
   completedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Document"> | Date | string | null
   userId?: Prisma.StringWithAggregatesFilter<"Document"> | string
+  batchId?: Prisma.StringNullableWithAggregatesFilter<"Document"> | string | null
 }
 
 export type DocumentCreateInput = {
@@ -481,6 +496,7 @@ export type DocumentCreateInput = {
   completedAt?: Date | string | null
   user: Prisma.UserCreateNestedOneWithoutDocumentsInput
   jobs?: Prisma.ProcessingJobCreateNestedManyWithoutDocumentInput
+  batch?: Prisma.DocumentBatchCreateNestedOneWithoutDocumentsInput
 }
 
 export type DocumentUncheckedCreateInput = {
@@ -504,6 +520,7 @@ export type DocumentUncheckedCreateInput = {
   updatedAt?: Date | string
   completedAt?: Date | string | null
   userId: string
+  batchId?: string | null
   jobs?: Prisma.ProcessingJobUncheckedCreateNestedManyWithoutDocumentInput
 }
 
@@ -529,6 +546,7 @@ export type DocumentUpdateInput = {
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   user?: Prisma.UserUpdateOneRequiredWithoutDocumentsNestedInput
   jobs?: Prisma.ProcessingJobUpdateManyWithoutDocumentNestedInput
+  batch?: Prisma.DocumentBatchUpdateOneWithoutDocumentsNestedInput
 }
 
 export type DocumentUncheckedUpdateInput = {
@@ -552,6 +570,7 @@ export type DocumentUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  batchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobs?: Prisma.ProcessingJobUncheckedUpdateManyWithoutDocumentNestedInput
 }
 
@@ -576,6 +595,7 @@ export type DocumentCreateManyInput = {
   updatedAt?: Date | string
   completedAt?: Date | string | null
   userId: string
+  batchId?: string | null
 }
 
 export type DocumentUpdateManyMutationInput = {
@@ -621,6 +641,7 @@ export type DocumentUncheckedUpdateManyInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  batchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type DocumentListRelationFilter = {
@@ -654,6 +675,7 @@ export type DocumentCountOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  batchId?: Prisma.SortOrder
 }
 
 export type DocumentAvgOrderByAggregateInput = {
@@ -684,6 +706,7 @@ export type DocumentMaxOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  batchId?: Prisma.SortOrder
 }
 
 export type DocumentMinOrderByAggregateInput = {
@@ -707,6 +730,7 @@ export type DocumentMinOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
   completedAt?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  batchId?: Prisma.SortOrder
 }
 
 export type DocumentSumOrderByAggregateInput = {
@@ -716,9 +740,9 @@ export type DocumentSumOrderByAggregateInput = {
   retryCount?: Prisma.SortOrder
 }
 
-export type DocumentScalarRelationFilter = {
-  is?: Prisma.DocumentWhereInput
-  isNot?: Prisma.DocumentWhereInput
+export type DocumentNullableScalarRelationFilter = {
+  is?: Prisma.DocumentWhereInput | null
+  isNot?: Prisma.DocumentWhereInput | null
 }
 
 export type DocumentCreateNestedManyWithoutUserInput = {
@@ -779,16 +803,60 @@ export type NullableIntFieldUpdateOperationsInput = {
   divide?: number
 }
 
+export type DocumentCreateNestedManyWithoutBatchInput = {
+  create?: Prisma.XOR<Prisma.DocumentCreateWithoutBatchInput, Prisma.DocumentUncheckedCreateWithoutBatchInput> | Prisma.DocumentCreateWithoutBatchInput[] | Prisma.DocumentUncheckedCreateWithoutBatchInput[]
+  connectOrCreate?: Prisma.DocumentCreateOrConnectWithoutBatchInput | Prisma.DocumentCreateOrConnectWithoutBatchInput[]
+  createMany?: Prisma.DocumentCreateManyBatchInputEnvelope
+  connect?: Prisma.DocumentWhereUniqueInput | Prisma.DocumentWhereUniqueInput[]
+}
+
+export type DocumentUncheckedCreateNestedManyWithoutBatchInput = {
+  create?: Prisma.XOR<Prisma.DocumentCreateWithoutBatchInput, Prisma.DocumentUncheckedCreateWithoutBatchInput> | Prisma.DocumentCreateWithoutBatchInput[] | Prisma.DocumentUncheckedCreateWithoutBatchInput[]
+  connectOrCreate?: Prisma.DocumentCreateOrConnectWithoutBatchInput | Prisma.DocumentCreateOrConnectWithoutBatchInput[]
+  createMany?: Prisma.DocumentCreateManyBatchInputEnvelope
+  connect?: Prisma.DocumentWhereUniqueInput | Prisma.DocumentWhereUniqueInput[]
+}
+
+export type DocumentUpdateManyWithoutBatchNestedInput = {
+  create?: Prisma.XOR<Prisma.DocumentCreateWithoutBatchInput, Prisma.DocumentUncheckedCreateWithoutBatchInput> | Prisma.DocumentCreateWithoutBatchInput[] | Prisma.DocumentUncheckedCreateWithoutBatchInput[]
+  connectOrCreate?: Prisma.DocumentCreateOrConnectWithoutBatchInput | Prisma.DocumentCreateOrConnectWithoutBatchInput[]
+  upsert?: Prisma.DocumentUpsertWithWhereUniqueWithoutBatchInput | Prisma.DocumentUpsertWithWhereUniqueWithoutBatchInput[]
+  createMany?: Prisma.DocumentCreateManyBatchInputEnvelope
+  set?: Prisma.DocumentWhereUniqueInput | Prisma.DocumentWhereUniqueInput[]
+  disconnect?: Prisma.DocumentWhereUniqueInput | Prisma.DocumentWhereUniqueInput[]
+  delete?: Prisma.DocumentWhereUniqueInput | Prisma.DocumentWhereUniqueInput[]
+  connect?: Prisma.DocumentWhereUniqueInput | Prisma.DocumentWhereUniqueInput[]
+  update?: Prisma.DocumentUpdateWithWhereUniqueWithoutBatchInput | Prisma.DocumentUpdateWithWhereUniqueWithoutBatchInput[]
+  updateMany?: Prisma.DocumentUpdateManyWithWhereWithoutBatchInput | Prisma.DocumentUpdateManyWithWhereWithoutBatchInput[]
+  deleteMany?: Prisma.DocumentScalarWhereInput | Prisma.DocumentScalarWhereInput[]
+}
+
+export type DocumentUncheckedUpdateManyWithoutBatchNestedInput = {
+  create?: Prisma.XOR<Prisma.DocumentCreateWithoutBatchInput, Prisma.DocumentUncheckedCreateWithoutBatchInput> | Prisma.DocumentCreateWithoutBatchInput[] | Prisma.DocumentUncheckedCreateWithoutBatchInput[]
+  connectOrCreate?: Prisma.DocumentCreateOrConnectWithoutBatchInput | Prisma.DocumentCreateOrConnectWithoutBatchInput[]
+  upsert?: Prisma.DocumentUpsertWithWhereUniqueWithoutBatchInput | Prisma.DocumentUpsertWithWhereUniqueWithoutBatchInput[]
+  createMany?: Prisma.DocumentCreateManyBatchInputEnvelope
+  set?: Prisma.DocumentWhereUniqueInput | Prisma.DocumentWhereUniqueInput[]
+  disconnect?: Prisma.DocumentWhereUniqueInput | Prisma.DocumentWhereUniqueInput[]
+  delete?: Prisma.DocumentWhereUniqueInput | Prisma.DocumentWhereUniqueInput[]
+  connect?: Prisma.DocumentWhereUniqueInput | Prisma.DocumentWhereUniqueInput[]
+  update?: Prisma.DocumentUpdateWithWhereUniqueWithoutBatchInput | Prisma.DocumentUpdateWithWhereUniqueWithoutBatchInput[]
+  updateMany?: Prisma.DocumentUpdateManyWithWhereWithoutBatchInput | Prisma.DocumentUpdateManyWithWhereWithoutBatchInput[]
+  deleteMany?: Prisma.DocumentScalarWhereInput | Prisma.DocumentScalarWhereInput[]
+}
+
 export type DocumentCreateNestedOneWithoutJobsInput = {
   create?: Prisma.XOR<Prisma.DocumentCreateWithoutJobsInput, Prisma.DocumentUncheckedCreateWithoutJobsInput>
   connectOrCreate?: Prisma.DocumentCreateOrConnectWithoutJobsInput
   connect?: Prisma.DocumentWhereUniqueInput
 }
 
-export type DocumentUpdateOneRequiredWithoutJobsNestedInput = {
+export type DocumentUpdateOneWithoutJobsNestedInput = {
   create?: Prisma.XOR<Prisma.DocumentCreateWithoutJobsInput, Prisma.DocumentUncheckedCreateWithoutJobsInput>
   connectOrCreate?: Prisma.DocumentCreateOrConnectWithoutJobsInput
   upsert?: Prisma.DocumentUpsertWithoutJobsInput
+  disconnect?: Prisma.DocumentWhereInput | boolean
+  delete?: Prisma.DocumentWhereInput | boolean
   connect?: Prisma.DocumentWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.DocumentUpdateToOneWithWhereWithoutJobsInput, Prisma.DocumentUpdateWithoutJobsInput>, Prisma.DocumentUncheckedUpdateWithoutJobsInput>
 }
@@ -814,6 +882,7 @@ export type DocumentCreateWithoutUserInput = {
   updatedAt?: Date | string
   completedAt?: Date | string | null
   jobs?: Prisma.ProcessingJobCreateNestedManyWithoutDocumentInput
+  batch?: Prisma.DocumentBatchCreateNestedOneWithoutDocumentsInput
 }
 
 export type DocumentUncheckedCreateWithoutUserInput = {
@@ -836,6 +905,7 @@ export type DocumentUncheckedCreateWithoutUserInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   completedAt?: Date | string | null
+  batchId?: string | null
   jobs?: Prisma.ProcessingJobUncheckedCreateNestedManyWithoutDocumentInput
 }
 
@@ -889,6 +959,81 @@ export type DocumentScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Document"> | Date | string
   completedAt?: Prisma.DateTimeNullableFilter<"Document"> | Date | string | null
   userId?: Prisma.StringFilter<"Document"> | string
+  batchId?: Prisma.StringNullableFilter<"Document"> | string | null
+}
+
+export type DocumentCreateWithoutBatchInput = {
+  id?: string
+  filename: string
+  originalName: string
+  mimeType: string
+  fileSize: number
+  status?: $Enums.DocumentStatus
+  mode: $Enums.ProcessingMode
+  sourceLanguage: string
+  targetLanguage?: string | null
+  filePath: string
+  extractedText?: string | null
+  translatedText?: string | null
+  tokensUsed?: number | null
+  processingTimeMs?: number | null
+  errorMessage?: string | null
+  retryCount?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  completedAt?: Date | string | null
+  user: Prisma.UserCreateNestedOneWithoutDocumentsInput
+  jobs?: Prisma.ProcessingJobCreateNestedManyWithoutDocumentInput
+}
+
+export type DocumentUncheckedCreateWithoutBatchInput = {
+  id?: string
+  filename: string
+  originalName: string
+  mimeType: string
+  fileSize: number
+  status?: $Enums.DocumentStatus
+  mode: $Enums.ProcessingMode
+  sourceLanguage: string
+  targetLanguage?: string | null
+  filePath: string
+  extractedText?: string | null
+  translatedText?: string | null
+  tokensUsed?: number | null
+  processingTimeMs?: number | null
+  errorMessage?: string | null
+  retryCount?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  completedAt?: Date | string | null
+  userId: string
+  jobs?: Prisma.ProcessingJobUncheckedCreateNestedManyWithoutDocumentInput
+}
+
+export type DocumentCreateOrConnectWithoutBatchInput = {
+  where: Prisma.DocumentWhereUniqueInput
+  create: Prisma.XOR<Prisma.DocumentCreateWithoutBatchInput, Prisma.DocumentUncheckedCreateWithoutBatchInput>
+}
+
+export type DocumentCreateManyBatchInputEnvelope = {
+  data: Prisma.DocumentCreateManyBatchInput | Prisma.DocumentCreateManyBatchInput[]
+  skipDuplicates?: boolean
+}
+
+export type DocumentUpsertWithWhereUniqueWithoutBatchInput = {
+  where: Prisma.DocumentWhereUniqueInput
+  update: Prisma.XOR<Prisma.DocumentUpdateWithoutBatchInput, Prisma.DocumentUncheckedUpdateWithoutBatchInput>
+  create: Prisma.XOR<Prisma.DocumentCreateWithoutBatchInput, Prisma.DocumentUncheckedCreateWithoutBatchInput>
+}
+
+export type DocumentUpdateWithWhereUniqueWithoutBatchInput = {
+  where: Prisma.DocumentWhereUniqueInput
+  data: Prisma.XOR<Prisma.DocumentUpdateWithoutBatchInput, Prisma.DocumentUncheckedUpdateWithoutBatchInput>
+}
+
+export type DocumentUpdateManyWithWhereWithoutBatchInput = {
+  where: Prisma.DocumentScalarWhereInput
+  data: Prisma.XOR<Prisma.DocumentUpdateManyMutationInput, Prisma.DocumentUncheckedUpdateManyWithoutBatchInput>
 }
 
 export type DocumentCreateWithoutJobsInput = {
@@ -912,6 +1057,7 @@ export type DocumentCreateWithoutJobsInput = {
   updatedAt?: Date | string
   completedAt?: Date | string | null
   user: Prisma.UserCreateNestedOneWithoutDocumentsInput
+  batch?: Prisma.DocumentBatchCreateNestedOneWithoutDocumentsInput
 }
 
 export type DocumentUncheckedCreateWithoutJobsInput = {
@@ -935,6 +1081,7 @@ export type DocumentUncheckedCreateWithoutJobsInput = {
   updatedAt?: Date | string
   completedAt?: Date | string | null
   userId: string
+  batchId?: string | null
 }
 
 export type DocumentCreateOrConnectWithoutJobsInput = {
@@ -974,6 +1121,7 @@ export type DocumentUpdateWithoutJobsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   user?: Prisma.UserUpdateOneRequiredWithoutDocumentsNestedInput
+  batch?: Prisma.DocumentBatchUpdateOneWithoutDocumentsNestedInput
 }
 
 export type DocumentUncheckedUpdateWithoutJobsInput = {
@@ -997,6 +1145,7 @@ export type DocumentUncheckedUpdateWithoutJobsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  batchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type DocumentCreateManyUserInput = {
@@ -1019,6 +1168,7 @@ export type DocumentCreateManyUserInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   completedAt?: Date | string | null
+  batchId?: string | null
 }
 
 export type DocumentUpdateWithoutUserInput = {
@@ -1042,6 +1192,7 @@ export type DocumentUpdateWithoutUserInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   jobs?: Prisma.ProcessingJobUpdateManyWithoutDocumentNestedInput
+  batch?: Prisma.DocumentBatchUpdateOneWithoutDocumentsNestedInput
 }
 
 export type DocumentUncheckedUpdateWithoutUserInput = {
@@ -1064,6 +1215,7 @@ export type DocumentUncheckedUpdateWithoutUserInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  batchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   jobs?: Prisma.ProcessingJobUncheckedUpdateManyWithoutDocumentNestedInput
 }
 
@@ -1087,6 +1239,101 @@ export type DocumentUncheckedUpdateManyWithoutUserInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  batchId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type DocumentCreateManyBatchInput = {
+  id?: string
+  filename: string
+  originalName: string
+  mimeType: string
+  fileSize: number
+  status?: $Enums.DocumentStatus
+  mode: $Enums.ProcessingMode
+  sourceLanguage: string
+  targetLanguage?: string | null
+  filePath: string
+  extractedText?: string | null
+  translatedText?: string | null
+  tokensUsed?: number | null
+  processingTimeMs?: number | null
+  errorMessage?: string | null
+  retryCount?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  completedAt?: Date | string | null
+  userId: string
+}
+
+export type DocumentUpdateWithoutBatchInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  filename?: Prisma.StringFieldUpdateOperationsInput | string
+  originalName?: Prisma.StringFieldUpdateOperationsInput | string
+  mimeType?: Prisma.StringFieldUpdateOperationsInput | string
+  fileSize?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumDocumentStatusFieldUpdateOperationsInput | $Enums.DocumentStatus
+  mode?: Prisma.EnumProcessingModeFieldUpdateOperationsInput | $Enums.ProcessingMode
+  sourceLanguage?: Prisma.StringFieldUpdateOperationsInput | string
+  targetLanguage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  filePath?: Prisma.StringFieldUpdateOperationsInput | string
+  extractedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  translatedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tokensUsed?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  processingTimeMs?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  retryCount?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  user?: Prisma.UserUpdateOneRequiredWithoutDocumentsNestedInput
+  jobs?: Prisma.ProcessingJobUpdateManyWithoutDocumentNestedInput
+}
+
+export type DocumentUncheckedUpdateWithoutBatchInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  filename?: Prisma.StringFieldUpdateOperationsInput | string
+  originalName?: Prisma.StringFieldUpdateOperationsInput | string
+  mimeType?: Prisma.StringFieldUpdateOperationsInput | string
+  fileSize?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumDocumentStatusFieldUpdateOperationsInput | $Enums.DocumentStatus
+  mode?: Prisma.EnumProcessingModeFieldUpdateOperationsInput | $Enums.ProcessingMode
+  sourceLanguage?: Prisma.StringFieldUpdateOperationsInput | string
+  targetLanguage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  filePath?: Prisma.StringFieldUpdateOperationsInput | string
+  extractedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  translatedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tokensUsed?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  processingTimeMs?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  retryCount?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  jobs?: Prisma.ProcessingJobUncheckedUpdateManyWithoutDocumentNestedInput
+}
+
+export type DocumentUncheckedUpdateManyWithoutBatchInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  filename?: Prisma.StringFieldUpdateOperationsInput | string
+  originalName?: Prisma.StringFieldUpdateOperationsInput | string
+  mimeType?: Prisma.StringFieldUpdateOperationsInput | string
+  fileSize?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumDocumentStatusFieldUpdateOperationsInput | $Enums.DocumentStatus
+  mode?: Prisma.EnumProcessingModeFieldUpdateOperationsInput | $Enums.ProcessingMode
+  sourceLanguage?: Prisma.StringFieldUpdateOperationsInput | string
+  targetLanguage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  filePath?: Prisma.StringFieldUpdateOperationsInput | string
+  extractedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  translatedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tokensUsed?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  processingTimeMs?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  retryCount?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
 
@@ -1141,8 +1388,10 @@ export type DocumentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   updatedAt?: boolean
   completedAt?: boolean
   userId?: boolean
+  batchId?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   jobs?: boolean | Prisma.Document$jobsArgs<ExtArgs>
+  batch?: boolean | Prisma.Document$batchArgs<ExtArgs>
   _count?: boolean | Prisma.DocumentCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["document"]>
 
@@ -1167,7 +1416,9 @@ export type DocumentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   updatedAt?: boolean
   completedAt?: boolean
   userId?: boolean
+  batchId?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  batch?: boolean | Prisma.Document$batchArgs<ExtArgs>
 }, ExtArgs["result"]["document"]>
 
 export type DocumentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1191,7 +1442,9 @@ export type DocumentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   updatedAt?: boolean
   completedAt?: boolean
   userId?: boolean
+  batchId?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  batch?: boolean | Prisma.Document$batchArgs<ExtArgs>
 }, ExtArgs["result"]["document"]>
 
 export type DocumentSelectScalar = {
@@ -1215,19 +1468,23 @@ export type DocumentSelectScalar = {
   updatedAt?: boolean
   completedAt?: boolean
   userId?: boolean
+  batchId?: boolean
 }
 
-export type DocumentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "filename" | "originalName" | "mimeType" | "fileSize" | "status" | "mode" | "sourceLanguage" | "targetLanguage" | "filePath" | "extractedText" | "translatedText" | "tokensUsed" | "processingTimeMs" | "errorMessage" | "retryCount" | "createdAt" | "updatedAt" | "completedAt" | "userId", ExtArgs["result"]["document"]>
+export type DocumentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "filename" | "originalName" | "mimeType" | "fileSize" | "status" | "mode" | "sourceLanguage" | "targetLanguage" | "filePath" | "extractedText" | "translatedText" | "tokensUsed" | "processingTimeMs" | "errorMessage" | "retryCount" | "createdAt" | "updatedAt" | "completedAt" | "userId" | "batchId", ExtArgs["result"]["document"]>
 export type DocumentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   jobs?: boolean | Prisma.Document$jobsArgs<ExtArgs>
+  batch?: boolean | Prisma.Document$batchArgs<ExtArgs>
   _count?: boolean | Prisma.DocumentCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type DocumentIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  batch?: boolean | Prisma.Document$batchArgs<ExtArgs>
 }
 export type DocumentIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  batch?: boolean | Prisma.Document$batchArgs<ExtArgs>
 }
 
 export type $DocumentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1235,6 +1492,7 @@ export type $DocumentPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
   objects: {
     user: Prisma.$UserPayload<ExtArgs>
     jobs: Prisma.$ProcessingJobPayload<ExtArgs>[]
+    batch: Prisma.$DocumentBatchPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1257,6 +1515,7 @@ export type $DocumentPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     updatedAt: Date
     completedAt: Date | null
     userId: string
+    batchId: string | null
   }, ExtArgs["result"]["document"]>
   composites: {}
 }
@@ -1653,6 +1912,7 @@ export interface Prisma__DocumentClient<T, Null = never, ExtArgs extends runtime
   readonly [Symbol.toStringTag]: "PrismaPromise"
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   jobs<T extends Prisma.Document$jobsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Document$jobsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProcessingJobPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  batch<T extends Prisma.Document$batchArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Document$batchArgs<ExtArgs>>): Prisma.Prisma__DocumentBatchClient<runtime.Types.Result.GetResult<Prisma.$DocumentBatchPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1702,6 +1962,7 @@ export interface DocumentFieldRefs {
   readonly updatedAt: Prisma.FieldRef<"Document", 'DateTime'>
   readonly completedAt: Prisma.FieldRef<"Document", 'DateTime'>
   readonly userId: Prisma.FieldRef<"Document", 'String'>
+  readonly batchId: Prisma.FieldRef<"Document", 'String'>
 }
     
 
@@ -2119,6 +2380,25 @@ export type Document$jobsArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   distinct?: Prisma.ProcessingJobScalarFieldEnum | Prisma.ProcessingJobScalarFieldEnum[]
+}
+
+/**
+ * Document.batch
+ */
+export type Document$batchArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DocumentBatch
+   */
+  select?: Prisma.DocumentBatchSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DocumentBatch
+   */
+  omit?: Prisma.DocumentBatchOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DocumentBatchInclude<ExtArgs> | null
+  where?: Prisma.DocumentBatchWhereInput
 }
 
 /**

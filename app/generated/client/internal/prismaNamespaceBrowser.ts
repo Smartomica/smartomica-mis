@@ -53,6 +53,7 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   Document: 'Document',
+  DocumentBatch: 'DocumentBatch',
   ProcessingJob: 'ProcessingJob',
   TokenTransaction: 'TokenTransaction'
 } as const
@@ -110,10 +111,23 @@ export const DocumentScalarFieldEnum = {
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   completedAt: 'completedAt',
-  userId: 'userId'
+  userId: 'userId',
+  batchId: 'batchId'
 } as const
 
 export type DocumentScalarFieldEnum = (typeof DocumentScalarFieldEnum)[keyof typeof DocumentScalarFieldEnum]
+
+
+export const DocumentBatchScalarFieldEnum = {
+  id: 'id',
+  status: 'status',
+  mode: 'mode',
+  combinedResult: 'combinedResult',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DocumentBatchScalarFieldEnum = (typeof DocumentBatchScalarFieldEnum)[keyof typeof DocumentBatchScalarFieldEnum]
 
 
 export const ProcessingJobScalarFieldEnum = {
@@ -131,7 +145,8 @@ export const ProcessingJobScalarFieldEnum = {
   updatedAt: 'updatedAt',
   startedAt: 'startedAt',
   completedAt: 'completedAt',
-  documentId: 'documentId'
+  documentId: 'documentId',
+  batchId: 'batchId'
 } as const
 
 export type ProcessingJobScalarFieldEnum = (typeof ProcessingJobScalarFieldEnum)[keyof typeof ProcessingJobScalarFieldEnum]

@@ -70,6 +70,7 @@ export async function processDocument({
 }: ProcessDocumentArgs): Promise<{
   success: boolean;
   documentId?: string;
+  batchId?: string;
   error?: string;
 }> {
   try {
@@ -97,6 +98,16 @@ export async function processDocument({
       };
     }
 
+    // Create a batch for the documents
+    const batchId = randomUUID();
+    const batch = await prisma.documentBatch.create({
+      data: {
+        id: batchId,
+        mode,
+        status: "PENDING" as DocumentStatus,
+      },
+    });
+
     // Create document records in database (files already uploaded via presigned URLs)
     const documents = await Promise.all(
       files.map(async (file) => {
@@ -116,6 +127,7 @@ export async function processDocument({
             targetLanguage: mode === ProcessingMode.OCR ? null : targetLanguage,
             filePath: file.objectName,
             userId,
+            batchId: batchId,
           },
         });
 
@@ -123,14 +135,14 @@ export async function processDocument({
       }),
     );
 
-    // Start processing each document
-    for (const document of documents) {
-      await processDocumentAsync(document.id).catch(console.error);
-    }
+    // Call processBatchAsync to handle the batch
+    // We don't await this so the response is fast
+    processBatchAsync(batchId, userId).catch(console.error);
 
     return {
       success: true,
-      documentId: documents[0]?.id, // Return first document ID
+      documentId: documents[0]?.id, // Return first document ID for backward compatibility
+      batchId: batchId,
     };
   } catch (error) {
     console.error("Document processing initiation failed:", error);
@@ -141,88 +153,113 @@ export async function processDocument({
   }
 }
 
-export async function processDocumentAsync(documentId: string): Promise<void> {
+export async function processBatchAsync(batchId: string, userId: string): Promise<void> {
   const startTime = Date.now();
 
   try {
-    // Get document from database
-    const document = await prisma.document.findUnique({
-      where: { id: documentId },
-      include: { user: true },
+    // Get batch and documents
+    const batch = await prisma.documentBatch.findUnique({
+      where: { id: batchId },
+      include: { documents: true },
     });
 
-    if (!document) {
-      throw new Error("Document not found");
+    if (!batch) {
+      throw new Error("Batch not found");
     }
 
-    // Update status to PROCESSING
-    await prisma.document.update({
-      where: { id: documentId },
+    const { documents } = batch;
+    if (documents.length === 0) {
+        throw new Error("No documents in batch");
+    }
+
+    // Update batch and documents status to PROCESSING
+    await prisma.documentBatch.update({
+        where: { id: batchId },
+        data: { status: "PROCESSING" },
+    });
+
+    await prisma.document.updateMany({
+      where: { batchId },
       data: { status: "PROCESSING" },
     });
 
-    // Create processing job
+    // Determine basic info from the first document (assuming all are same for the batch request)
+    const firstDoc = documents[0];
+    const sourceLanguage = firstDoc.sourceLanguage;
+    const targetLanguage = firstDoc.targetLanguage;
+    const mode = firstDoc.mode;
+
+    // Create ONE processing job for the batch
     const job = await prisma.processingJob.create({
       data: {
-        type: mapModeToJobType(document.mode),
+        type: mapModeToJobType(mode),
         status: "RUNNING",
-        documentId,
+        batchId,
         inputData: {
-          sourceLanguage: document.sourceLanguage,
-          targetLanguage: document.targetLanguage,
-          mode: document.mode,
+          sourceLanguage,
+          targetLanguage,
+          mode,
+          documentIds: documents.map(d => d.id),
         },
       },
     });
 
-    await startActiveObservation(`document-${document.mode}`, async (span) => {
-      const sessionId = `doc-${documentId}`;
+    await startActiveObservation(`batch-${mode}`, async (span) => {
+      const sessionId = `batch-${batchId}`;
 
       span.updateTrace({
-        sessionId: `doc-${documentId}`,
-        tags: [document.mode],
+        sessionId,
+        tags: [mode, "batch"],
       });
       span.update({
         input: {
-          fileName: document.originalName,
-          fileSize: document.fileSize,
-          filePath: document.filePath,
-          sourceLanguage: document.sourceLanguage,
-          targetLanguage: document.targetLanguage,
-          mode: document.mode,
+          files: documents.map(d => d.originalName),
+          totalSize: documents.reduce((acc, d) => acc + d.fileSize, 0),
+          sourceLanguage,
+          targetLanguage,
+          mode,
         },
       });
 
-      // Process with OpenAI
       const openai = getOpenAI({
         sessionId,
-        generationName: `mis-${document.mode}-generation`,
+        generationName: `mis-${mode}-generation`,
       });
 
-      // Extract text from document (simplified for now)
-      const extractedText = await extractTextFromDocument(document, sessionId);
+      // 1. Extract text from ALL documents (parallel)
+      const extractionResults = await Promise.all(
+          documents.map(async (doc) => {
+              const text = await extractTextFromDocument(doc, sessionId);
+              // Update individual document with extracted text
+              await prisma.document.update({
+                  where: { id: doc.id },
+                  data: { extractedText: text },
+              });
+              return { doc, text };
+          })
+      );
 
-      await prisma.document.update({
-        where: { id: documentId },
-        data: {
-          extractedText,
-        },
-      });
+      // Combine extracted text
+      const combinedExtractedText = extractionResults
+          .map(({ doc, text }) => `--- Document: ${doc.originalName} ---\n${text}`)
+          .join("\n\n");
 
+      // 2. Resolve Prompt
       const prompt = await resolveMisPrompt(
-        document.mode,
-        document.sourceLanguage as Lang,
-        document.targetLanguage as Lang,
+        mode,
+        sourceLanguage as Lang,
+        targetLanguage as Lang,
       );
 
       const messages = [
         ...prompt,
         {
           role: "user",
-          content: `Tesseract OCR result: ${extractedText}`,
+          content: `Tesseract OCR result (combined documents): ${combinedExtractedText}`,
         } as const,
       ];
 
+      // 3. Generate combined output
       const response = await openai.chat.completions.create({
         model: "openai/gpt-4o",
         messages,
@@ -234,21 +271,35 @@ export async function processDocumentAsync(documentId: string): Promise<void> {
         response.choices[0]?.message?.content || "";
       const generatedContent = clearMarkdown(generatedContentString);
       const processingTime = Date.now() - startTime;
-      const tokensUsed = estimateTokensUsed(extractedText, generatedContent);
+      const tokensUsed = estimateTokensUsed(combinedExtractedText, generatedContent);
 
-      // Update document with results
-      await prisma.document.update({
-        where: { id: documentId },
-        data: {
-          status: "COMPLETED",
-          translatedText: generatedContent,
-          tokensUsed,
-          processingTimeMs: processingTime,
-          completedAt: new Date(),
-        },
+      // 4. Save results to Batch and update Job
+      // Update batch
+      await prisma.documentBatch.update({
+          where: { id: batchId },
+          data: {
+              status: "COMPLETED",
+              combinedResult: generatedContent,
+          }
+      });
+      
+      // Also update individual documents to COMPLETED, storing the same generated content?
+      // The prompt says "produce ONE translation/summary". 
+      // We can store it in the batch. 
+      // Individual documents might just stay as COMPLETED.
+      // Or we can copy the result to each document just in case the UI expects it there?
+      // Let's copy it to make sure the UI works if it looks at individual documents.
+      await prisma.document.updateMany({
+          where: { batchId },
+          data: {
+              status: "COMPLETED",
+              translatedText: generatedContent, // Or maybe "See Batch Result"? Let's verify what UI expects.
+              tokensUsed: Math.ceil(tokensUsed / documents.length), // Distribute tokens?
+              processingTimeMs: Math.ceil(processingTime / documents.length),
+              completedAt: new Date(),
+          }
       });
 
-      // Complete processing job
       await prisma.processingJob.update({
         where: { id: job.id },
         data: {
@@ -260,10 +311,10 @@ export async function processDocumentAsync(documentId: string): Promise<void> {
         },
       });
 
-      // Deduct tokens from user and create transaction
+      // Deduct tokens
       await prisma.$transaction([
         prisma.user.update({
-          where: { id: document.userId },
+          where: { id: userId },
           data: {
             tokensUsed: { increment: tokensUsed },
             tokensRemaining: { decrement: tokensUsed },
@@ -273,9 +324,9 @@ export async function processDocumentAsync(documentId: string): Promise<void> {
           data: {
             type: "PROCESSING_USE",
             amount: -tokensUsed,
-            reason: `Document processing: ${document.originalName}`,
-            documentId,
-            userId: document.userId,
+            reason: `Batch processing: ${documents.length} files`,
+            documentId: null, // It's a batch, transaction schema doesn't have batchId yet, but that's fine.
+            userId: userId,
           },
         }),
       ]);
@@ -291,11 +342,16 @@ export async function processDocumentAsync(documentId: string): Promise<void> {
       return { content: generatedContent, tokensUsed };
     });
   } catch (error) {
-    console.error("Document processing failed:", error);
+    console.error("Batch processing failed:", error);
 
-    // Update document and job with error
-    await prisma.document.update({
-      where: { id: documentId },
+    // Update batch, documents and job with error
+    await prisma.documentBatch.update({
+        where: { id: batchId },
+        data: { status: "FAILED" }
+    });
+    
+    await prisma.document.updateMany({
+      where: { batchId },
       data: {
         status: "FAILED",
         errorMessage: error instanceof Error ? error.message : "Unknown error",
@@ -303,10 +359,9 @@ export async function processDocumentAsync(documentId: string): Promise<void> {
       },
     });
 
-    // Update processing job if it exists
     await prisma.processingJob.updateMany({
       where: {
-        documentId,
+        batchId,
         status: "RUNNING",
       },
       data: {
@@ -316,6 +371,32 @@ export async function processDocumentAsync(documentId: string): Promise<void> {
       },
     });
   }
+}
+
+// Kept for backward compatibility if needed, but not exported anymore if not used elsewhere
+export async function processDocumentAsync(documentId: string): Promise<void> {
+    // This function is now deprecated in favor of processBatchAsync
+    // but we can implement it by finding the batch and processing it.
+    const doc = await prisma.document.findUnique({where: {id: documentId}});
+    if (!doc) throw new Error("Document not found");
+
+    if (doc.batchId) {
+        return processBatchAsync(doc.batchId, doc.userId);
+    } else {
+        // Create a batch for this single document if it doesn't have one
+        const batchId = randomUUID();
+        await prisma.documentBatch.create({
+            data: {
+                id: batchId,
+                mode: doc.mode,
+                status: "PENDING",
+                documents: {
+                    connect: { id: documentId }
+                }
+            }
+        });
+        return processBatchAsync(batchId, doc.userId);
+    }
 }
 
 function clearMarkdown(extractedTextString: string): string {

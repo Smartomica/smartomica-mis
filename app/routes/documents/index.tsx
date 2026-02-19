@@ -30,6 +30,14 @@ export async function loader({ request }: Route.LoaderArgs) {
         orderBy: { createdAt: "desc" },
         take: 1, // Get the latest job for each document
       },
+      batch: {
+        include: {
+            jobs: {
+                orderBy: { createdAt: "desc" },
+                take: 1
+            }
+        }
+      }
     },
   });
 
@@ -37,6 +45,21 @@ export async function loader({ request }: Route.LoaderArgs) {
   const documents: TranslationJob[] = await Promise.all(
     dbDocuments.map(async (doc) => {
       const fileUrl = await getOriginalDocumentPreviewUrl(doc);
+      
+      // Determine effective status and error from batch if applicable
+      let status = doc.status;
+      let error = doc.errorMessage;
+      
+      // Check if we have a batch job running that might be more up to date or provide more info
+      const batchJob = doc.batch?.jobs?.[0];
+      const directJob = doc.jobs?.[0];
+      
+      // If the document is part of a batch and the batch failed, the document should reflect that too.
+      // Although the backend updates document status, checking the batch job ensures we catch any edge cases.
+      if (doc.batch && batchJob && batchJob.status === "FAILED") {
+          status = DocumentStatus.FAILED;
+          error = batchJob.errorMessage || error || "Batch processing failed";
+      }
 
       return {
         id: doc.id,
@@ -54,16 +77,16 @@ export async function loader({ request }: Route.LoaderArgs) {
         sourceLanguage: doc.sourceLanguage,
         targetLanguage: doc.targetLanguage || "",
         mode: doc.mode,
-        status: doc.status,
+        status: status,
         result: doc.translatedText || doc.extractedText || undefined,
         resultUrl:
-          doc.status === "COMPLETED"
+          status === "COMPLETED"
             ? `/documents/download/${doc.id}`
             : undefined,
         createdAt: doc.createdAt.toISOString(),
         updatedAt: doc.updatedAt.toISOString(),
-        progress: calculateProgress(doc.status),
-        error: doc.errorMessage || "Unknown error",
+        progress: calculateProgress(status),
+        error: error || "Unknown error",
         tokensUsed: doc.tokensUsed || undefined,
       };
     }),
@@ -77,10 +100,12 @@ function calculateProgress(status: string): number {
     case "COMPLETED":
       return 100;
     case "PROCESSING":
+    case "RUNNING": // Handle JobStatus mapping if mixed
       return 50;
     case "FAILED":
       return 0;
     case "PENDING":
+    case "QUEUED": // Handle JobStatus mapping if mixed
     default:
       return 0;
   }

@@ -10,6 +10,7 @@
  */
 export type * from './models/User'
 export type * from './models/Document'
+export type * from './models/DocumentBatch'
 export type * from './models/ProcessingJob'
 export type * from './models/TokenTransaction'
 export type * from './commonInputTypes'

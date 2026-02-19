@@ -23,11 +23,25 @@ export async function loader({ request, params }: Route.LoaderArgs) {
         orderBy: { createdAt: "desc" },
         take: 1,
       },
+      batch: {
+        include: {
+            jobs: {
+                orderBy: { createdAt: "desc" },
+                take: 1
+            }
+        }
+      }
     },
   });
 
   if (!document || document.userId !== user.id) {
     throw new Response("Not Found", { status: 404 });
+  }
+
+  // Sync status if batch failed
+  if(document.batch && document.batch.jobs[0]?.status === "FAILED" && document.status !== "FAILED") {
+      document.status = DocumentStatus.FAILED;
+      document.errorMessage = document.batch.jobs[0].errorMessage || "Batch processing failed";
   }
 
   const fileUrl = await getOriginalDocumentPreviewUrl(document);

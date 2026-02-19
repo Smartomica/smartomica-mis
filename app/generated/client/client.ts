@@ -50,6 +50,11 @@ export type User = Prisma.UserModel
  */
 export type Document = Prisma.DocumentModel
 /**
+ * Model DocumentBatch
+ * 
+ */
+export type DocumentBatch = Prisma.DocumentBatchModel
+/**
  * Model ProcessingJob
  * 
  */

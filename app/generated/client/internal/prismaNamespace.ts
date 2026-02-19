@@ -386,6 +386,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   User: 'User',
   Document: 'Document',
+  DocumentBatch: 'DocumentBatch',
   ProcessingJob: 'ProcessingJob',
   TokenTransaction: 'TokenTransaction'
 } as const
@@ -403,7 +404,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "document" | "processingJob" | "tokenTransaction"
+    modelProps: "user" | "document" | "documentBatch" | "processingJob" | "tokenTransaction"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -552,6 +553,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.DocumentCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.DocumentCountAggregateOutputType> | number
+        }
+      }
+    }
+    DocumentBatch: {
+      payload: Prisma.$DocumentBatchPayload<ExtArgs>
+      fields: Prisma.DocumentBatchFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DocumentBatchFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentBatchPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DocumentBatchFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentBatchPayload>
+        }
+        findFirst: {
+          args: Prisma.DocumentBatchFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentBatchPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DocumentBatchFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentBatchPayload>
+        }
+        findMany: {
+          args: Prisma.DocumentBatchFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentBatchPayload>[]
+        }
+        create: {
+          args: Prisma.DocumentBatchCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentBatchPayload>
+        }
+        createMany: {
+          args: Prisma.DocumentBatchCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DocumentBatchCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentBatchPayload>[]
+        }
+        delete: {
+          args: Prisma.DocumentBatchDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentBatchPayload>
+        }
+        update: {
+          args: Prisma.DocumentBatchUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentBatchPayload>
+        }
+        deleteMany: {
+          args: Prisma.DocumentBatchDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DocumentBatchUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DocumentBatchUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentBatchPayload>[]
+        }
+        upsert: {
+          args: Prisma.DocumentBatchUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DocumentBatchPayload>
+        }
+        aggregate: {
+          args: Prisma.DocumentBatchAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDocumentBatch>
+        }
+        groupBy: {
+          args: Prisma.DocumentBatchGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DocumentBatchGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DocumentBatchCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DocumentBatchCountAggregateOutputType> | number
         }
       }
     }
@@ -779,10 +854,23 @@ export const DocumentScalarFieldEnum = {
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   completedAt: 'completedAt',
-  userId: 'userId'
+  userId: 'userId',
+  batchId: 'batchId'
 } as const
 
 export type DocumentScalarFieldEnum = (typeof DocumentScalarFieldEnum)[keyof typeof DocumentScalarFieldEnum]
+
+
+export const DocumentBatchScalarFieldEnum = {
+  id: 'id',
+  status: 'status',
+  mode: 'mode',
+  combinedResult: 'combinedResult',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DocumentBatchScalarFieldEnum = (typeof DocumentBatchScalarFieldEnum)[keyof typeof DocumentBatchScalarFieldEnum]
 
 
 export const ProcessingJobScalarFieldEnum = {
@@ -800,7 +888,8 @@ export const ProcessingJobScalarFieldEnum = {
   updatedAt: 'updatedAt',
   startedAt: 'startedAt',
   completedAt: 'completedAt',
-  documentId: 'documentId'
+  documentId: 'documentId',
+  batchId: 'batchId'
 } as const
 
 export type ProcessingJobScalarFieldEnum = (typeof ProcessingJobScalarFieldEnum)[keyof typeof ProcessingJobScalarFieldEnum]
@@ -1117,6 +1206,7 @@ export type PrismaClientOptions = ({
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   document?: Prisma.DocumentOmit
+  documentBatch?: Prisma.DocumentBatchOmit
   processingJob?: Prisma.ProcessingJobOmit
   tokenTransaction?: Prisma.TokenTransactionOmit
 }
