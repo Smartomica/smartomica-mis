@@ -21,4 +21,5 @@ COPY --from=build-env /app/build /app/build
 COPY ./prisma /app/prisma
 COPY ./prisma.config.ts /app/
 WORKDIR /app
+RUN npm run db:deploy
 CMD ["sh", "-c", "npm run db:deploy && npm run start"]
