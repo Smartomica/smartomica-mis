@@ -179,6 +179,7 @@ export async function loader({ request }: Route.LoaderArgs) {
         name: d.originalName,
         size: d.fileSize,
         type: d.mimeType,
+        url: null,
         uploadedAt: d.createdAt.toISOString(),
       })),
       sourceLanguage: representative.sourceLanguage,

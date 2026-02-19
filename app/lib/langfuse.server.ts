@@ -8,7 +8,7 @@ import {
   LANGFUSE_SECRET_KEY,
   OPENROUTER_API_KEY,
 } from "~/env.server";
-import type { SimplifiedChatMessage } from "./services/document-processor.server";
+import type { SimplifiedChatMessage } from "./services/document-processor.server/const";
 
 export function getLangfuseSDK() {
   return new LangfuseClient({

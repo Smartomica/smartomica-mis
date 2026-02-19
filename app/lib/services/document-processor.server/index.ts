@@ -1,65 +1,30 @@
-import { dirname, join } from "path";
-import { randomUUID } from "crypto";
 import { startActiveObservation } from "@langfuse/tracing";
-import {
-  getOpenAI,
-  getLangfuseSDK,
-  compileChatPrompt,
-  listPrompts,
-} from "~/lib/langfuse.server";
-import { getFileUrl } from "~/lib/storage/minio.server";
-import { prisma } from "~/lib/db/client";
-import { type Document, type DocumentStatus } from "~/lib/db/client";
+import { randomUUID } from "crypto";
+import mammoth from "mammoth";
+import { dirname, join } from "path";
+import { LOCAL_MODE } from "~/env.server";
 import { JobType, ProcessingMode } from "~/generated/client/enums";
+import { prisma, type Document, type DocumentStatus } from "~/lib/db/client";
 import { NeverError } from "~/lib/error";
+import { getOpenAI } from "~/lib/langfuse.server";
 import {
-  requiresOCR,
-  pdfToImages,
+  extractDirectPDFText,
   extractTextFromImage,
   extractTextFromPDF,
-  extractDirectPDFText,
+  pdfToImages,
+  requiresOCR,
 } from "~/lib/services/ocr.server";
-import type { ChatPromptClient, TextPromptClient } from "@langfuse/client";
-import mammoth from "mammoth";
-import type OpenAI from "openai";
-import { LOCAL_MODE } from "~/env.server";
-
-const PAGES_SUBDIRECTORY = "pages";
-
-export interface SimplifiedChatMessage {
-  role: "system" | "user" | "assistant";
-  content: string;
-}
-
-interface ProcessDocumentArgs {
-  files: Array<{
-    objectName: string;
-    name: string;
-    mimeType: string;
-    size: number;
-  }>;
-  sourceLanguage: string;
-  targetLanguage: string;
-  mode: ProcessingMode;
-  userId: string;
-}
-
-enum Lang {
-  Auto = "auto",
-  AR = "ar",
-  EN = "en",
-  ES = "es",
-  FR = "fr",
-  DE = "de",
-  HE = "he",
-  IT = "it",
-  PT = "pt",
-  RU = "ru",
-  UK = "uk",
-  UZ = "uz",
-}
-
-export const ALL_LANGUAGES: Lang[] = Object.values(Lang);
+import { getFileUrl } from "~/lib/storage/minio.server";
+import {
+  Lang,
+  ALL_LANGUAGES,
+  PAGES_SUBDIRECTORY,
+  type ProcessDocumentArgs,
+} from "./const";
+import { resolveMisPrompt } from "./resolveMisPrompt";
+import { estimateTokensNeeded, estimateTokensUsed } from "./tokens";
+import { clearMarkdownAroundJson } from "./clearMarkdown";
+import { extractText } from "./extractTextWihLLM";
 
 export async function processDocument({
   files,
@@ -153,7 +118,7 @@ export async function processDocument({
   }
 }
 
-export async function processBatchAsync(
+async function processBatchAsync(
   batchId: string,
   userId: string,
 ): Promise<void> {
@@ -277,7 +242,7 @@ export async function processBatchAsync(
 
       const generatedContentString =
         response.choices[0]?.message?.content || "";
-      const generatedContent = clearMarkdown(generatedContentString);
+      const generatedContent = clearMarkdownAroundJson(generatedContentString);
       const processingTime = Date.now() - startTime;
       const tokensUsed = estimateTokensUsed(
         combinedExtractedText,
@@ -410,31 +375,6 @@ export async function processDocumentAsync(documentId: string): Promise<void> {
   }
 }
 
-function clearMarkdown(extractedTextString: string): string {
-  let extractedText, llmError, llmComment;
-  try {
-    extractedText = new RegExp("^```(json|JSON)(.*)```$", "s")
-      .exec(extractedTextString)
-      ?.at(2)
-      ?.trim();
-
-    const extractedObject = JSON.parse(extractedText!);
-
-    extractedText = extractedObject.text;
-    llmError = extractedObject.error;
-    llmComment = extractedObject.comment;
-  } catch (error) {
-    console.log(error);
-    extractedText = extractedTextString;
-  }
-
-  if (llmError) {
-    throw new Error(llmError);
-  }
-
-  return extractedText;
-}
-
 async function extractTextFromDocument(
   document: Document,
   sessionId: string,
@@ -490,7 +430,7 @@ async function extractTextFromDocument(
 
       console.log(`Converted PDF to ${images.length} images`);
 
-      const fullText = await extractTextWithOpenAI(openAi, ...imageUrls);
+      const fullText = await extractText(openAi, ...imageUrls);
 
       return fullText;
     } else if (
@@ -543,7 +483,7 @@ async function extractTextFromDocument(
       console.log("Using OpenAI Vision for image...");
       const fileUrl = await getFileUrl(document.filePath);
 
-      return await extractTextWithOpenAI(openAi, fileUrl);
+      return await extractText(openAi, fileUrl);
     } else {
       // For text-based files or unsupported formats
       const fileUrl = await getFileUrl(document.filePath);
@@ -593,217 +533,4 @@ function mapModeToJobType(mode: ProcessingMode) {
     default:
       throw new NeverError(mode);
   }
-}
-
-function estimateTokensNeeded(
-  files: Array<{ size: number }>,
-  mode: string,
-): number {
-  // Simple estimation: 1 token per 4 characters, with overhead for processing
-  const totalSize = files.reduce((sum, file) => sum + file.size, 0);
-  const baseTokens = Math.ceil(totalSize / 4);
-
-  // Add overhead based on mode
-  const overhead = mode === "ocr" ? 1.2 : 2.0; // Translation needs more tokens
-  return Math.ceil(baseTokens * overhead) * 1e-4;
-}
-
-function estimateTokensUsed(input: string, output: string): number {
-  // Simple estimation: 1 token per 4 characters for both input and output
-  const inputTokens = Math.ceil(input.length / 4);
-  const outputTokens = Math.ceil(output.length / 4);
-  return inputTokens + outputTokens;
-}
-
-async function resolveMisPrompt(
-  processingMode: ProcessingMode,
-  sourceLanguage: Lang,
-  targetLanguage: Lang,
-): Promise<SimplifiedChatMessage[]> {
-  const misPrompts = await listPrompts({ tag: "mis", limit: 100 });
-  const sdk = getLangfuseSDK();
-
-  switch (processingMode) {
-    case ProcessingMode.OCR:
-      const ocrChatPrompts = misPrompts.data.filter(
-        (p) =>
-          p.type === "chat" &&
-          p.tags.includes("ocr") &&
-          p.tags.includes("chat"),
-      );
-
-      const glossaryTextPrompts = misPrompts.data.filter(
-        (p) =>
-          p.type === "text" &&
-          p.tags.includes("glossary") &&
-          p.tags.includes(sourceLanguage),
-      );
-
-      let ocrChatPrompt = await sdk.prompt.get(ocrChatPrompts[0]?.name, {
-        type: "chat",
-      });
-
-      let ocrTextPrompt = await sdk.prompt.get(glossaryTextPrompts[0]?.name, {
-        type: "text",
-      });
-
-      return combinePrompts(ocrChatPrompt, ocrTextPrompt);
-
-    case ProcessingMode.SUMMARISE:
-      const summariseChatPromptName = misPrompts.data
-        .filter((p) => p.type === "chat" && p.tags.includes("summary"))
-        .at(0)?.name;
-
-      const summariseTextPromptName = misPrompts.data
-        .filter(
-          (p) =>
-            p.type === "text" &&
-            p.tags.includes("glossary") &&
-            p.tags.includes(sourceLanguage),
-        )
-        ?.at(0)?.name;
-
-      let summariseChatPrompt = summariseChatPromptName
-        ? await sdk.prompt.get(summariseChatPromptName, {
-            type: "chat",
-          })
-        : null;
-
-      let summariseTextPrompt = summariseTextPromptName
-        ? await sdk.prompt.get(summariseTextPromptName, {
-            type: "text",
-          })
-        : null;
-
-      return combinePrompts(summariseChatPrompt, summariseTextPrompt);
-
-    case ProcessingMode.SUMMARISE_ONCO:
-      const summariseOncoChatPromptName = misPrompts.data
-        .filter((p) => p.type === "chat" && p.tags.includes("oncology"))
-        .at(0)?.name;
-
-      const summariseOncoTextPromptName = misPrompts.data
-        .filter(
-          (p) =>
-            p.type === "text" &&
-            p.tags.includes("glossary") &&
-            p.tags.includes(sourceLanguage),
-        )
-        ?.at(0)?.name;
-
-      let summariseOncoChatPrompt = summariseOncoChatPromptName
-        ? await sdk.prompt.get(summariseOncoChatPromptName, {
-            type: "chat",
-          })
-        : null;
-
-      let summariseOncoTextPrompt = summariseOncoTextPromptName
-        ? await sdk.prompt.get(summariseOncoTextPromptName, {
-            type: "text",
-          })
-        : null;
-
-      return combinePrompts(summariseOncoChatPrompt, summariseOncoTextPrompt);
-
-    case ProcessingMode.TRANSLATE:
-    case ProcessingMode.TRANSLATE_JUR:
-      const langPairChatPromptName =
-        misPrompts.data
-          .filter(
-            (p) =>
-              p.type === "chat" &&
-              p.tags.includes("translate") &&
-              // Require name to include smth like ru->en
-              p.name.indexOf(sourceLanguage) < p.name.indexOf(targetLanguage) &&
-              p.tags.includes(sourceLanguage) &&
-              p.tags.includes(targetLanguage),
-          )
-          .at(0)?.name ||
-        misPrompts.data
-          .filter(
-            (p) =>
-              p.type === "chat" &&
-              p.tags.includes("translate") &&
-              p.tags.includes("from-any-lang") &&
-              p.tags.includes(targetLanguage),
-          )
-          .at(0)?.name;
-
-      const glossarySourceTextPromptName = misPrompts.data
-        .filter((p) => p.type === "text" && p.tags.includes(sourceLanguage))
-        .at(0)?.name;
-
-      const glossaryTargetTextPromptName = misPrompts.data
-        .filter((p) => p.type === "text" && p.tags.includes(targetLanguage))
-        .at(0)?.name;
-
-      const langPairChatPrompt = langPairChatPromptName
-        ? await sdk.prompt.get(langPairChatPromptName, { type: "chat" })
-        : null;
-
-      const glossarySourceTextPrompt = glossarySourceTextPromptName
-        ? await sdk.prompt.get(glossarySourceTextPromptName, { type: "text" })
-        : null;
-      const glossaryTargetTextPrompt = glossaryTargetTextPromptName
-        ? await sdk.prompt.get(glossaryTargetTextPromptName, { type: "text" })
-        : null;
-
-      return combinePrompts(
-        langPairChatPrompt,
-        glossarySourceTextPrompt,
-        glossaryTargetTextPrompt,
-      );
-    default:
-      throw new NeverError(processingMode);
-  }
-}
-
-function combinePrompts(
-  chat: ChatPromptClient | null,
-  ...texts: (TextPromptClient | null)[]
-): SimplifiedChatMessage[] {
-  const combinedPrompt = compileChatPrompt(chat, {});
-
-  const combinedTextPrompts = texts.filter(Boolean).map(
-    (text) =>
-      ({
-        role: "system",
-        content: text!.prompt,
-      }) as const,
-  );
-
-  return [...combinedPrompt, ...combinedTextPrompts];
-}
-
-async function extractTextWithOpenAI(
-  openai: OpenAI,
-  ...imageUrls: string[]
-): Promise<string> {
-  const imageMessages = imageUrls.map(function (imageUrl) {
-    return {
-      type: "image_url",
-      image_url: {
-        url: imageUrl,
-      },
-    } as const;
-  });
-
-  const response = await openai.chat.completions.create({
-    model: "openai/gpt-4o",
-    messages: [
-      {
-        role: "user",
-        content: [
-          {
-            type: "text",
-            text: "Extract all text from this image(s). Return only the extracted text, no markdown formatting or comments. Only in the original languages. No complicated guesses. Use - instead",
-          },
-          ...imageMessages,
-        ],
-      },
-    ],
-    max_tokens: 4000,
-  });
-
-  return response.choices[0]?.message?.content || "";
 }
