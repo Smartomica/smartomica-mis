@@ -13,7 +13,6 @@ COPY . /app/
 COPY --from=development-dependencies-env /app/node_modules /app/node_modules
 WORKDIR /app
 RUN npm run build
-RUN npm run db:deploy
 
 FROM node:20-alpine
 COPY ./package.json package-lock.json /app/
