@@ -1,4 +1,5 @@
 import type OpenAI from "openai";
+import { OPENROUTER_MODEL_VISION } from "~/env.server";
 
 export async function extractText(
   openai: OpenAI,
@@ -14,7 +15,7 @@ export async function extractText(
   });
 
   const response = await openai.chat.completions.create({
-    model: "openai/gpt-4o",
+    model: OPENROUTER_MODEL_VISION,
     messages: [
       {
         role: "user",

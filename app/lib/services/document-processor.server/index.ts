@@ -2,7 +2,7 @@ import { startActiveObservation } from "@langfuse/tracing";
 import { randomUUID } from "crypto";
 import mammoth from "mammoth";
 import { dirname, join } from "path";
-import { LOCAL_MODE } from "~/env.server";
+import { LOCAL_MODE, OPENROUTER_MODEL_GENERAL } from "~/env.server";
 import { JobType, ProcessingMode } from "~/generated/client/enums";
 import { prisma, type Document, type DocumentStatus } from "~/lib/db/client";
 import { NeverError } from "~/lib/error";
@@ -234,7 +234,7 @@ async function processBatchAsync(
 
       // 3. Generate combined output
       const response = await openai.chat.completions.create({
-        model: "openai/gpt-4o",
+        model: OPENROUTER_MODEL_GENERAL,
         messages,
         temperature: 0.3,
         max_tokens: 4000,
