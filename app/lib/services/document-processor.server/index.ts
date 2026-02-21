@@ -237,7 +237,7 @@ async function processBatchAsync(
         model: OPENROUTER_MODEL_GENERAL,
         messages,
         temperature: 0.3,
-        max_tokens: 4000,
+        max_tokens: 20 * 1e3,
       });
 
       const generatedContentString =
