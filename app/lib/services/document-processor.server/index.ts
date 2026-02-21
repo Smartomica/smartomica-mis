@@ -242,7 +242,14 @@ async function processBatchAsync(
 
       const generatedContentString =
         response.choices[0]?.message?.content || "";
-      const generatedContent = clearMarkdownAroundJson(generatedContentString);
+      let generatedContent = clearMarkdownAroundJson(generatedContentString);
+
+      try {
+        generatedContent = JSON.parse(generatedContentString).text;
+      } catch (error) {
+        console.error("Failed to parse generated JSON:", error);
+      }
+
       const processingTime = Date.now() - startTime;
       const tokensUsed = estimateTokensUsed(
         combinedExtractedText,
