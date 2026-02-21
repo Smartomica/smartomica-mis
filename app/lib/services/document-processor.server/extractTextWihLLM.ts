@@ -1,5 +1,8 @@
 import type OpenAI from "openai";
 import { OPENROUTER_MODEL_VISION } from "~/env.server";
+import { resolveMisPrompt } from "./resolveMisPrompt";
+import { ProcessingMode } from "~/generated/client/enums";
+import { Lang } from "./const";
 
 export async function extractText(
   openai: OpenAI,
@@ -14,18 +17,19 @@ export async function extractText(
     } as const;
   });
 
+  const ocrPrompt = await resolveMisPrompt(
+    ProcessingMode.OCR,
+    Lang.Auto,
+    Lang.EN,
+  );
+
   const response = await openai.chat.completions.create({
     model: OPENROUTER_MODEL_VISION,
     messages: [
+      ...ocrPrompt,
       {
         role: "user",
-        content: [
-          {
-            type: "text",
-            text: "Extract all text from this image(s). Return only the extracted text, no markdown formatting or comments. Only in the original languages. No complicated guesses. Use - instead",
-          },
-          ...imageMessages,
-        ],
+        content: imageMessages,
       },
     ],
     max_tokens: 4000,

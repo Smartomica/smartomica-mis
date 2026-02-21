@@ -381,7 +381,7 @@ async function extractTextFromDocument(
 ): Promise<string> {
   const openAi = getOpenAI({
     sessionId,
-    generationName: "document-text-extraction",
+    generationName: "mis-document-text-extraction",
   });
 
   try {
