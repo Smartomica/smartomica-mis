@@ -32,7 +32,7 @@ export async function extractText(
         content: imageMessages,
       },
     ],
-    max_tokens: 12 * 1e3,
+    max_tokens: 30 * 1e3,
   });
 
   return response.choices[0]?.message?.content || "";
