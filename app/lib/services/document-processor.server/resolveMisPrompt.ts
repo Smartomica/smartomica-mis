@@ -18,28 +18,32 @@ export async function resolveMisPrompt(
 
   switch (processingMode) {
     case ProcessingMode.OCR:
-      const ocrChatPrompts = misPrompts.data.filter(
-        (p) =>
-          p.type === "chat" &&
-          p.tags.includes("ocr") &&
-          p.tags.includes("chat"),
-      );
+      const ocrChatPromptName = misPrompts.data
+        .filter(
+          (p) =>
+            p.type === "chat" &&
+            p.tags.includes("ocr") &&
+            p.tags.includes("chat"),
+        )
+        ?.at(0)?.name;
 
-      const glossaryTextPrompts = misPrompts.data.filter(
-        (p) =>
-          p.type === "text" &&
-          p.tags.includes("glossary") &&
-          p.tags.includes(sourceLanguage),
-      );
+      const glossaryTextPromptName = misPrompts.data
+        .filter(
+          (p) =>
+            p.type === "text" &&
+            p.tags.includes("glossary") &&
+            p.tags.includes(sourceLanguage),
+        )
+        ?.at(0)?.name;
 
-      let ocrChatPrompt = ocrChatPrompts[0]?.name
-        ? await sdk.prompt.get(ocrChatPrompts[0]?.name, {
+      let ocrChatPrompt = ocrChatPromptName
+        ? await sdk.prompt.get(ocrChatPromptName, {
             type: "chat",
           })
         : null;
 
-      let ocrTextPrompt = ocrChatPrompts[0]?.name
-        ? await sdk.prompt.get(glossaryTextPrompts[0]?.name, {
+      let ocrTextPrompt = glossaryTextPromptName
+        ? await sdk.prompt.get(glossaryTextPromptName, {
             type: "text",
           })
         : null;
