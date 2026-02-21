@@ -173,7 +173,7 @@ async function processBatchAsync(
     });
 
     await startActiveObservation(`batch-${mode}`, async (span) => {
-      const sessionId = `batch-${batchId}`;
+      const sessionId = `mis-batch-${batchId}`;
 
       span.updateTrace({
         sessionId,

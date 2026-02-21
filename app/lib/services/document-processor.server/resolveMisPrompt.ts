@@ -32,6 +32,8 @@ export async function resolveMisPrompt(
           p.tags.includes(sourceLanguage),
       );
 
+      console.log({ ocrChatPrompts, glossaryTextPrompts });
+
       let ocrChatPrompt = await sdk.prompt.get(ocrChatPrompts[0]?.name, {
         type: "chat",
       });
