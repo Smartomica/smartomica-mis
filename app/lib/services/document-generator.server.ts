@@ -1,4 +1,4 @@
-import HTMLtoDOCX from "html-to-docx";
+import HtmlToDocx from "@turbodocx/html-to-docx";
 
 export async function generateDocx(htmlContent: string): Promise<Buffer> {
   // Trim content to avoid leading whitespace issues
@@ -15,7 +15,7 @@ ${cleanContent}
 </body>
 </html>`;
 
-  const buffer = await HTMLtoDOCX(fullHtml, null, {
+  const buffer = await HtmlToDocx(fullHtml, null, {
     table: { row: { cantSplit: true } },
     footer: true,
     pageNumber: true,
