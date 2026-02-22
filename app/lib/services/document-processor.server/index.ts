@@ -1,3 +1,4 @@
+import WordExtractor from "word-extractor";
 import { startActiveObservation } from "@langfuse/tracing";
 import { randomUUID } from "crypto";
 import mammoth from "mammoth";
@@ -8,11 +9,11 @@ import { prisma, type Document, type DocumentStatus } from "~/lib/db/client";
 import { NeverError } from "~/lib/error";
 import { getOpenAI } from "~/lib/langfuse.server";
 import {
-  extractDirectPDFText,
-  extractTextFromImage,
-  extractTextFromPDF,
+  getDirectPDFText,
+  ocrTextFromImage,
+  ocrTextFromPDF,
   pdfToImages,
-  requiresOCR,
+  isRequiresOCR,
 } from "~/lib/services/ocr.server";
 import { getFileUrl } from "~/lib/storage/minio.server";
 import {
@@ -400,7 +401,7 @@ async function extractTextFromDocument(
     if (document.mimeType === "application/pdf") {
       // For PDFs, use our OCR service which handles both direct text and scanned PDFs
       // Try direct text extraction first (faster and cheaper)
-      const directText = await extractDirectPDFText(document.filePath);
+      const directText = await getDirectPDFText(document.filePath);
 
       if (directText && directText.trim().length > 50) {
         console.log("Successfully extracted text directly from PDF");
@@ -415,7 +416,7 @@ async function extractTextFromDocument(
       );
 
       if (LOCAL_MODE) {
-        const { extractedText, confidence } = await extractTextFromPDF(
+        const { extractedText, confidence } = await ocrTextFromPDF(
           document.filePath,
           pagesDir,
         );
@@ -471,15 +472,28 @@ async function extractTextFromDocument(
         );
       }
     } else if (document.mimeType === "application/msword") {
-      throw new Error(
-        "Legacy DOC format is not supported. Please convert to DOCX or PDF.",
-      );
-    } else if (requiresOCR(document.mimeType)) {
+      const fileUrl = await getFileUrl(document.filePath);
+      const response = await fetch(fileUrl);
+      const buffer = Buffer.from(await response.arrayBuffer());
+      const extractor = new WordExtractor();
+      const doc = await extractor.extract(buffer);
+      const sections = {
+        body: doc.getBody(),
+        headers: doc.getHeaders(),
+        footers: doc.getFooters(),
+        textBoxes: doc.getTextboxes(),
+        endNotes: doc.getEndnotes(),
+      };
+
+      console.log(sections);
+
+      const serializaed = `Header: ${sections.headers} \n Body: ${sections.body} \n Footer: ${sections.footers} \n TextBoxes: ${sections.textBoxes} \n EndNotes: ${sections.endNotes}`;
+      return serializaed;
+    } else if (isRequiresOCR(document.mimeType)) {
       if (LOCAL_MODE) {
         console.log("Using OCR for image...");
         const fileUrl = await getFileUrl(document.filePath);
-        const { extractedText, confidence } =
-          await extractTextFromImage(fileUrl);
+        const { extractedText, confidence } = await ocrTextFromImage(fileUrl);
 
         if (Number.isFinite(confidence) && Number(confidence) > 80)
           return extractedText;

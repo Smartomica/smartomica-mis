@@ -53,6 +53,7 @@
     "react-router": "7.12.0",
     "scribe.js-ocr": "^0.10.0",
     "tesseract.js": "^7.0.0",
+    "word-extractor": "^1.0.4",
     "zod": "^4.3.6"
   },
   "devDependencies": {
@@ -62,6 +63,7 @@
     "@types/node": "^22",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "@types/word-extractor": "^1.0.6",
     "tailwindcss": "^4.1.13",
     "typescript": "^5.9.2",
     "vite": "^7.1.7",

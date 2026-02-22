@@ -37,8 +37,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     // Try to get from cache first
     const fileBuffer = await downloadFile(exportPath);
 
-    // @ts-ignore: Buffer is assignable in fact
-    return new Response(fileBuffer, {
+    return new Response(Buffer.from(fileBuffer), {
       headers: {
         "Content-Type":
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -56,8 +55,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       });
 
-      // @ts-ignore: Buffer is assignable in fact
-      return new Response(docxBuffer, {
+      return new Response(Buffer.from(docxBuffer), {
         headers: {
           "Content-Type":
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

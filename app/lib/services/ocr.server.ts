@@ -34,9 +34,7 @@ export interface OCRResult {
   pages?: number;
 }
 
-export async function extractTextFromImage(
-  filePath: string,
-): Promise<OCRResult> {
+export async function ocrTextFromImage(filePath: string): Promise<OCRResult> {
   const worker = await createWorker(TESSERACT_LANGUAGES, OEM.LSTM_ONLY, {
     logger: (m) => console.log(m),
   });
@@ -53,13 +51,13 @@ export async function extractTextFromImage(
   };
 }
 
-export async function extractTextFromPDF(
+export async function ocrTextFromPDF(
   filePath: string,
   pagesDirectory: string,
 ): Promise<OCRResult> {
   try {
     // First try to extract text directly from PDF using pdf-parse
-    const directText = await extractDirectPDFText(filePath);
+    const directText = await getDirectPDFText(filePath);
 
     if (directText && directText.trim().length > 50) {
       return {
@@ -101,7 +99,7 @@ export async function extractTextFromPDF(
   }
 }
 
-export async function extractDirectPDFText(filePath: string): Promise<string> {
+export async function getDirectPDFText(filePath: string): Promise<string> {
   try {
     // Get file URL from Minio
     const fileUrl = await getFileUrl(filePath);
@@ -286,7 +284,7 @@ async function uploadFromZipBlob(zipBlob: Blob, pagesDirectory: string) {
 }
 
 // Helper function to determine if a file needs OCR based on extension and content
-export function requiresOCR(mimeType: string): boolean {
+export function isRequiresOCR(mimeType: string): boolean {
   const ocrRequiredTypes = [
     "image/png",
     "image/jpeg",
@@ -303,7 +301,7 @@ export function requiresOCR(mimeType: string): boolean {
 // Helper function to determine if PDF likely contains scanned images
 export async function isScannedPDF(filePath: string): Promise<boolean> {
   try {
-    const directText = await extractDirectPDFText(filePath);
+    const directText = await getDirectPDFText(filePath);
 
     // If direct extraction returns very little text, it's likely scanned
     return directText.trim().length < 50;
