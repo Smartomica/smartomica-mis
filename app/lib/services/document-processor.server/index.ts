@@ -247,6 +247,7 @@ async function processBatchAsync(
 
       try {
         generatedContent = JSON.parse(generatedContentString).text;
+        generatedContent.replaceAll("\n", "");
       } catch (error) {
         console.error("Failed to parse generated JSON:", error);
       }
