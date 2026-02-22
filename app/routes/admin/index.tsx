@@ -80,6 +80,46 @@ export async function action({ request }: Route.ActionArgs) {
 
   try {
     switch (actionType) {
+      case "addUser": {
+        const email = formData.get("email") as string;
+        const name = formData.get("name") as string;
+
+        if (!email) {
+          return { error: "Email is required" };
+        }
+
+        const existingUser = await prisma.user.findUnique({
+          where: { email },
+        });
+
+        if (existingUser) {
+          return { error: "User with this email already exists" };
+        }
+
+        await prisma.$transaction(async (tx) => {
+          const newUser = await tx.user.create({
+            data: {
+              email,
+              name: name || undefined,
+              role: "USER",
+              tokensRemaining: 1000,
+            },
+          });
+
+          await tx.tokenTransaction.create({
+            data: {
+              type: "INITIAL_GRANT",
+              amount: 1000,
+              reason: "Initial user grant",
+              userId: newUser.id,
+              adminUserId: user.id,
+            },
+          });
+        });
+
+        return { success: "User added successfully" };
+      }
+
       case "addTokens": {
         const userId = formData.get("userId") as string;
         const amount = parseInt(formData.get("amount") as string);
@@ -277,6 +317,53 @@ export default function AdminDashboard() {
               <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100 mb-4">
                 User Management
               </h3>
+
+              {/* Add User Form */}
+              <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
+                  Add New User
+                </h4>
+                <Form method="post" className="flex flex-col sm:flex-row sm:items-end gap-3">
+                  <input type="hidden" name="actionType" value="addUser" />
+                  <div className="flex-1">
+                    <label
+                      htmlFor="email"
+                      className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1"
+                    >
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      id="email"
+                      placeholder="user@example.com"
+                      className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      required
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <label
+                      htmlFor="name"
+                      className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1"
+                    >
+                      Name (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      id="name"
+                      placeholder="John Doe"
+                      className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
+                  >
+                    Add User
+                  </button>
+                </Form>
+              </div>
 
               <div className="mt-6 overflow-hidden">
                 <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
