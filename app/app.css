@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 @theme {
   --font-sans:
@@ -25,11 +26,15 @@ body {
 }
 
 /* Input styles for better visibility */
-input, select, textarea {
+input,
+select,
+textarea {
   @apply bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600;
 }
 
-input:focus, select:focus, textarea:focus {
+input:focus,
+select:focus,
+textarea:focus {
   @apply ring-blue-500 border-blue-500 dark:ring-blue-400 dark:border-blue-400;
 }
 
