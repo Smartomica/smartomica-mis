@@ -27,7 +27,7 @@ export function DirectUpload({
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
-  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+  const MAX_FILE_SIZE = 30 * 1024 * 1024; // 30MB
 
   const handleFileSelect = async (fileList: FileList) => {
     if (disabled || fileList.length === 0) return;
