@@ -1,5 +1,5 @@
 import { LangfuseAPIClient } from "@langfuse/core";
-import { LangfuseClient } from "@langfuse/client";
+import { ChatPromptClient, LangfuseClient } from "@langfuse/client";
 import { observeOpenAI } from "@langfuse/openai";
 import OpenAI from "openai";
 import {
@@ -53,7 +53,7 @@ export const listPrompts = (() => {
 })();
 
 export function compileChatPrompt(
-  prompt: any,
+  prompt: ChatPromptClient,
   variables: Record<string, string>,
 ) {
   if (prompt?.type !== "chat" || !Array.isArray(prompt.prompt)) {

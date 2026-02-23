@@ -1,19 +1,26 @@
 export function clearMarkdownAroundJson(extractedTextString: string): string {
-  let extractedText, llmError, llmComment;
+  let extractedText = extractedTextString,
+    llmError,
+    llmComment;
   try {
-    extractedText = new RegExp("^```(json|JSON)(.*)```$", "s")
+    extractedText = JSON.parse(extractedTextString).text;
+  } catch {}
+
+  try {
+    const regexExtracted = new RegExp("^```(json|JSON)(.*)```$", "s")
       .exec(extractedTextString)
       ?.at(2)
       ?.trim();
 
-    const extractedObject = JSON.parse(extractedText!);
+    if (!regexExtracted) throw new Error("No JSON found after regex cleansing");
+
+    const extractedObject = JSON.parse(regexExtracted);
 
     extractedText = extractedObject.text;
     llmError = extractedObject.error;
     llmComment = extractedObject.comment;
   } catch (error) {
     console.log(error);
-    extractedText = extractedTextString;
   }
 
   if (llmError) {

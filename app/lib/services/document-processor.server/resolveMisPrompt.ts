@@ -13,6 +13,7 @@ export async function resolveMisPrompt(
   sourceLanguage: Lang,
   targetLanguage: Lang,
 ): Promise<SimplifiedChatMessage[]> {
+  const languageSetting = [sourceLanguage, targetLanguage] as const;
   const misPrompts = await listPrompts({ tag: "mis", limit: 100 });
   const sdk = getLangfuseSDK();
 
@@ -48,7 +49,7 @@ export async function resolveMisPrompt(
           })
         : null;
 
-      return combinePrompts(ocrChatPrompt, ocrTextPrompt);
+      return combinePrompts(languageSetting, ocrChatPrompt, ocrTextPrompt);
 
     case ProcessingMode.SUMMARISE:
       const summariseChatPromptName = misPrompts.data
@@ -60,7 +61,7 @@ export async function resolveMisPrompt(
           (p) =>
             p.type === "text" &&
             p.tags.includes("glossary") &&
-            p.tags.includes(sourceLanguage),
+            p.tags.includes(targetLanguage),
         )
         ?.at(0)?.name;
 
@@ -76,7 +77,11 @@ export async function resolveMisPrompt(
           })
         : null;
 
-      return combinePrompts(summariseChatPrompt, summariseTextPrompt);
+      return combinePrompts(
+        languageSetting,
+        summariseChatPrompt,
+        summariseTextPrompt,
+      );
 
     case ProcessingMode.SUMMARISE_ONCO:
       const summariseOncoChatPromptName = misPrompts.data
@@ -104,7 +109,11 @@ export async function resolveMisPrompt(
           })
         : null;
 
-      return combinePrompts(summariseOncoChatPrompt, summariseOncoTextPrompt);
+      return combinePrompts(
+        languageSetting,
+        summariseOncoChatPrompt,
+        summariseOncoTextPrompt,
+      );
 
     case ProcessingMode.TRANSLATE:
     case ProcessingMode.TRANSLATE_JUR:
@@ -150,6 +159,7 @@ export async function resolveMisPrompt(
         : null;
 
       return combinePrompts(
+        languageSetting,
         langPairChatPrompt,
         glossarySourceTextPrompt,
         glossaryTargetTextPrompt,
@@ -160,10 +170,17 @@ export async function resolveMisPrompt(
 }
 
 function combinePrompts(
+  [from, to]: readonly [Lang, Lang],
   chat: ChatPromptClient | null,
   ...texts: (TextPromptClient | null)[]
 ): SimplifiedChatMessage[] {
-  const combinedPrompt = compileChatPrompt(chat, {});
+  if (!chat)
+    throw new Error("Chat prompt is required as it is the primary prompt");
+
+  const combinedPrompt = compileChatPrompt(chat, {
+    sourceLang: from,
+    targetLang: to,
+  });
 
   const combinedTextPrompts = texts.filter(Boolean).map(
     (text) =>
