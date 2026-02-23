@@ -15,7 +15,10 @@ import "./app.css";
 
 export const meta: Route.MetaFunction = () => {
   return [
-    { title: "Smartomica MIS - Medical Document Translation" },
+    {
+      title:
+        "Smartomica Clinical Synopsis Engine - Medical Document Translation",
+    },
     {
       name: "description",
       content: "AI-powered medical document translation platform",

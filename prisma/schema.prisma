@@ -1,4 +1,4 @@
-// Smartomica MIS Database Schema
+// Smartomica Clinical Synopsis Engine Database Schema
 // Complete schema for users, documents, and token management
 
 generator client {
@@ -63,7 +63,7 @@ model Document {
   retryCount   Int     @default(0)
 
   // Timestamps
-  createdAt   DateTime  @updatedAt @default(now())
+  createdAt   DateTime  @default(now()) @updatedAt
   updatedAt   DateTime  @updatedAt
   completedAt DateTime?
 
@@ -71,30 +71,30 @@ model Document {
   userId String
   user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   jobs   ProcessingJob[]
-  
+
   batchId String?
-  batch DocumentBatch? @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  batch   DocumentBatch? @relation(fields: [batchId], references: [id], onDelete: SetNull)
 
   @@map("documents")
 }
 
 model DocumentBatch {
   id String @id @default(cuid())
-  
+
   // Batch details
   status DocumentStatus @default(PENDING)
-  mode ProcessingMode
-  
+  mode   ProcessingMode
+
   // Results
   combinedResult String?
-  
+
   // Relations
   documents Document[]
-  jobs ProcessingJob[]
-  
+  jobs      ProcessingJob[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@map("document_batches")
 }
 
@@ -123,9 +123,9 @@ model ProcessingJob {
   // Relations
   documentId String?
   document   Document? @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  
+
   batchId String?
-  batch DocumentBatch? @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  batch   DocumentBatch? @relation(fields: [batchId], references: [id], onDelete: Cascade)
 
   @@map("processing_jobs")
 }

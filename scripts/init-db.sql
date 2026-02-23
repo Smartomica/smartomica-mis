@@ -1,4 +1,4 @@
--- Initial database setup for Smartomica MIS
+-- Initial database setup for Smartomica Clinical Synopsis Engine
 -- This script runs when the PostgreSQL container starts for the first time
 
 -- Enable required extensions

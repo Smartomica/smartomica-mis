@@ -7,7 +7,7 @@ import { t } from "~/lib/i18n/i18n";
 import type { TranslationJob } from "~/types/document";
 import { DocumentStatus } from "~/generated/client/enums";
 import { prisma } from "~/lib/db/client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { getOriginalDocumentPreviewUrl } from "~/lib/services/document.server";
 import {
   PlusIcon,
@@ -19,6 +19,7 @@ import {
   TrashIcon,
   LayersIcon,
 } from "@radix-ui/react-icons";
+import { notifyMe, requestNotificationPermission } from "~/lib/notification.client";
 
 type DisplayItem = TranslationJob & {
   isBatch: boolean;
@@ -228,6 +229,13 @@ export default function Documents() {
   const revalidator = useRevalidator();
   const retryFetcher = useFetcher();
 
+  const [wasPending, setWasPending] = useState(
+    documents.some((doc) => doc.status === DocumentStatus.PENDING),
+  );
+  const isPending = documents.some(
+    (doc) => doc.status === DocumentStatus.PROCESSING,
+  );
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case DocumentStatus.COMPLETED:
@@ -242,6 +250,23 @@ export default function Documents() {
         return "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300";
     }
   };
+
+  useEffect(() => {
+    requestNotificationPermission();
+  }, []);
+
+  useEffect(
+    function () {
+      if (isPending) {
+        setWasPending(true);
+        return;
+      }
+      if (!wasPending) return;
+      notifyMe(t("documents.notification.title"), t("documents.notification.body"));
+      setWasPending(false);
+    },
+    [isPending, wasPending],
+  );
 
   useEffect(() => {
     const intervalId = setInterval(() => {

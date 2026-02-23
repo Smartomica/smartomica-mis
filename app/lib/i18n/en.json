@@ -1,8 +1,8 @@
 {
-  "siteName": "Smartomica MIS",
+  "siteName": "Smartomica Clinical Synopsis Engine",
   "common": {
-    "appName": "Smartomica MIS",
-    "tagline": "Professional Medical Document Translation",
+    "appName": "Smartomica CSE",
+    "tagline": "Professional Medical Document Synopsis generation & Translation",
     "language": "Language",
     "loading": "Loading...",
     "error": "Error",
@@ -27,7 +27,7 @@
   },
   "home": {
     "hero": {
-      "title": "Medical Document Translation with Artificial Intelligence",
+      "title": "Clinical Synopsis Engine with Artificial Intelligence",
       "subtitle": "Fast, accurate and confidential translation between all European languages",
       "cta": "Start Translation",
       "ctaSecondary": "Learn More"
@@ -131,6 +131,10 @@
       "fillAllFields": "Please fill in all fields and select files",
       "languagesDifferent": "Source and target languages must be different",
       "uploadError": "Error uploading documents"
+    },
+    "notification": {
+      "title": "Processing Complete",
+      "body": "Your document processing has finished."
     },
     "modeOption": {
       "OCR": {
