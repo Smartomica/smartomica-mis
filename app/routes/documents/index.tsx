@@ -7,7 +7,7 @@ import { t } from "~/lib/i18n/i18n";
 import type { TranslationJob } from "~/types/document";
 import { DocumentStatus } from "~/generated/client/enums";
 import { prisma } from "~/lib/db/client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { getOriginalDocumentPreviewUrl } from "~/lib/services/document.server";
 import {
   PlusIcon,
@@ -19,7 +19,10 @@ import {
   TrashIcon,
   LayersIcon,
 } from "@radix-ui/react-icons";
-import { notifyMe, requestNotificationPermission } from "~/lib/notification.client";
+import {
+  notifyMe,
+  requestNotificationPermission,
+} from "~/lib/notification.client";
 
 type DisplayItem = TranslationJob & {
   isBatch: boolean;
@@ -229,12 +232,14 @@ export default function Documents() {
   const revalidator = useRevalidator();
   const retryFetcher = useFetcher();
 
-  const [wasPending, setWasPending] = useState(
-    documents.some((doc) => doc.status === DocumentStatus.PENDING),
-  );
-  const isPending = documents.some(
-    (doc) => doc.status === DocumentStatus.PROCESSING,
-  );
+  const processingCount = documents.filter(
+    (doc) =>
+      doc.status === DocumentStatus.PROCESSING ||
+      doc.status === DocumentStatus.PENDING ||
+      doc.status === DocumentStatus.QUEUED,
+  ).length;
+
+  const prevProcessingCount = useRef(processingCount);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -257,15 +262,27 @@ export default function Documents() {
 
   useEffect(
     function () {
-      if (isPending) {
-        setWasPending(true);
-        return;
+      console.log(
+        "Processing count changed:",
+        processingCount,
+        "Previous:",
+        prevProcessingCount.current,
+      );
+
+      if (
+        prevProcessingCount.current > 0 &&
+        processingCount < prevProcessingCount.current
+      ) {
+        console.log("All documents finished processing. Sending notification.");
+        notifyMe(
+          t("documents.notification.title"),
+          t("documents.notification.body"),
+        );
       }
-      if (!wasPending) return;
-      notifyMe(t("documents.notification.title"), t("documents.notification.body"));
-      setWasPending(false);
+
+      prevProcessingCount.current = processingCount;
     },
-    [isPending, wasPending],
+    [processingCount],
   );
 
   useEffect(() => {
