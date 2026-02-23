@@ -17,6 +17,7 @@ import { SUPPORTED_LANGUAGES, PROCESSING_MODES } from "~/types/document";
 import { ProcessingMode } from "~/generated/client/enums";
 import type { FormUploadFile } from "~/hooks/useFormUpload";
 import { UpdateIcon } from "@radix-ui/react-icons";
+import { Lang } from "~/lib/services/document-processor.server/const";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await requireUser(request);
@@ -91,7 +92,7 @@ export default function DocumentUpload() {
   const uploadFetcher = useFetcher<typeof action>();
 
   const [uploadedFiles, setUploadedFiles] = useState<FormUploadFile[]>([]);
-  const [sourceLanguage, setSourceLanguage] = useState("");
+  const [sourceLanguage, setSourceLanguage] = useState(Lang.Auto);
   const [targetLanguage, setTargetLanguage] = useState("");
   const [mode, setMode] = useState<ProcessingMode>(ProcessingMode.TRANSLATE);
 
@@ -179,7 +180,7 @@ export default function DocumentUpload() {
                   id="sourceLanguage"
                   name="sourceLanguage"
                   value={sourceLanguage}
-                  onChange={(e) => setSourceLanguage(e.target.value)}
+                  onChange={(e) => setSourceLanguage(e.target.value as Lang)}
                   className="mt-1 block w-full pl-3 pr-10 py-2 text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 sm:text-sm rounded-md"
                   required
                 >
