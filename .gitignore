@@ -10,3 +10,7 @@ docker-compose.dev.yml
 /build/
 
 /generated/prisma
+
+# dev
+/smartomica-utils-http/
+compose.yaml
