@@ -7,6 +7,7 @@ import {
   listPrompts,
 } from "~/lib/langfuse.server";
 import type { Lang, SimplifiedChatMessage } from "./const";
+import { SUPPORTED_LANGUAGES } from "~/types/document";
 
 export async function resolveMisPrompt(
   processingMode: ProcessingMode,
@@ -178,8 +179,10 @@ function combinePrompts(
     throw new Error("Chat prompt is required as it is the primary prompt");
 
   const combinedPrompt = compileChatPrompt(chat, {
-    sourceLang: from,
-    targetLang: to,
+    sourceLang:
+      SUPPORTED_LANGUAGES.find((lang) => lang.code === from)?.name || from,
+    targetLang:
+      SUPPORTED_LANGUAGES.find((lang) => lang.code === to)?.name || to,
   });
 
   const combinedTextPrompts = texts.filter(Boolean).map(
