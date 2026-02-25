@@ -221,11 +221,11 @@ export default function DocumentDetails() {
                     <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
                       {t("documents.details.translated")}
                     </h4>
-                    <div
+                    <article
                       dangerouslySetInnerHTML={{
                         __html: document.translatedText,
                       }}
-                      className="prose dark:prose-invert max-w-none whitespace-pre-wrap text-gray-900 dark:text-gray-100"
+                      className="prose dark:prose-invert max-w-none  text-gray-900 dark:text-gray-100"
                     />
                   </div>
                 </div>
