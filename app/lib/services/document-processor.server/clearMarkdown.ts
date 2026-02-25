@@ -16,7 +16,8 @@ export function clearMarkdownAroundJson(extractedTextString: string): string {
 
     const extractedObject = JSON.parse(regexExtracted);
 
-    extractedText = extractedObject.text;
+    // It should be HTML inside
+    extractedText = extractedObject.text.replaceAll("\n", "");
     llmError = extractedObject.error;
     llmComment = extractedObject.comment;
   } catch (error) {

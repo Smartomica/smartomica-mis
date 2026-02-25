@@ -216,7 +216,7 @@ async function processBatchAsync(
         .map(
           ({ doc, text }) => `--- Document: ${doc.originalName} ---\n${text}`,
         )
-        .join("\n\n");
+        .join("\n");
 
       // 2. Resolve Prompt
       const prompt = await resolveMisPrompt(
