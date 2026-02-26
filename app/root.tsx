@@ -57,6 +57,7 @@ export const headers: Route.HeadersFunction = () => {
     "frame-ancestors 'none'", // Prevent framing
     "base-uri 'self'", // Restrict base URI
     "form-action 'self'", // Restrict form submissions
+    "worker-src 'self'",
   ].join("; ");
 
   return {
