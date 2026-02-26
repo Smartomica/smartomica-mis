@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Form,
   redirect,
@@ -6,6 +6,8 @@ import {
   useFetcher,
   useLoaderData,
   useNavigate,
+  type Fetcher,
+  type FetcherWithComponents,
 } from "react-router";
 import type { Route } from "./+types/upload";
 import { requireUser } from "~/lib/auth/session.server";
@@ -28,16 +30,17 @@ export async function action({ request }: Route.ActionArgs) {
   const user = await requireUser(request);
   const formData = await request.formData();
 
-  const rawFiles = formData.get("files") as string;
   const sourceLanguage = formData.get("sourceLanguage") as string;
   const targetLanguage = formData.get("targetLanguage") as string;
   const mode = formData.get("mode") as ProcessingMode;
 
-  if (!rawFiles || !sourceLanguage || !targetLanguage || !mode) {
+  if (!user.lastConsentAt) {
     return {
-      error: t("documents.upload.fillAllFields"),
+      error: t("fileUpload.consent.text"),
     };
   }
+
+  const rawFiles = formData.get("files") as string;
 
   if (
     sourceLanguage === targetLanguage &&
@@ -90,18 +93,33 @@ export default function DocumentUpload() {
   const actionData = useActionData<typeof action>();
   const navigate = useNavigate();
   const uploadFetcher = useFetcher<typeof action>();
+  const consentFetcher = useFetcher<{ success: boolean }>();
 
   const [uploadedFiles, setUploadedFiles] = useState<FormUploadFile[]>([]);
   const [sourceLanguage, setSourceLanguage] = useState(Lang.Auto);
   const [targetLanguage, setTargetLanguage] = useState("");
   const [mode, setMode] = useState<ProcessingMode>(ProcessingMode.TRANSLATE);
+  const [showConsentModal, setShowConsentModal] = useState(false);
+  const [hasConsented, setHasConsented] = useState(!!user.lastConsentAt);
 
   const isSubmitting = uploadFetcher.state === "submitting";
+
+  useEffect(() => {
+    if (consentFetcher.data?.success) {
+      setHasConsented(true);
+      setShowConsentModal(false);
+    }
+  }, [consentFetcher.data]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!uploadedFiles.length || !sourceLanguage || !targetLanguage || !mode) {
+      return;
+    }
+
+    if (!hasConsented) {
+      setShowConsentModal(true);
       return;
     }
 
@@ -139,6 +157,13 @@ export default function DocumentUpload() {
   return (
     <Layout user={user}>
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {showConsentModal && (
+          <DataProcessingConsent
+            onDisagree={() => setShowConsentModal(false)}
+            consentFetcher={consentFetcher}
+          />
+        )}
+
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             {t("documents.upload.title")}
@@ -296,5 +321,103 @@ export default function DocumentUpload() {
         </div>
       </div>
     </Layout>
+  );
+}
+
+function DataProcessingConsent({
+  consentFetcher,
+  onDisagree,
+}: {
+  consentFetcher: FetcherWithComponents<{
+    success: boolean;
+  }>;
+  onDisagree(): void;
+}) {
+  const [isChecked, setIsChecked] = useState(false);
+  const [isHighlighted, setIsHighlighted] = useState(false);
+  const checkBoxRef = useRef<HTMLInputElement>(null);
+
+  const blocks = [
+    "block1",
+    "block2",
+    "block3",
+    "block4",
+    "block5",
+    "block6",
+  ].map(function (blockName) {
+    const text = t(`fileUpload.consent.${blockName}`);
+    const dot = text.indexOf(".");
+    const firstSentence = text.slice(0, dot + 1);
+    const rest = text.slice(dot + 1);
+    return [firstSentence, rest] as const;
+  });
+
+  function handleConsent() {
+    if (!checkBoxRef.current) return;
+    if (!isChecked) {
+      setIsHighlighted(true);
+      checkBoxRef.current.focus();
+      return;
+    }
+    consentFetcher.submit(
+      {},
+      { method: "POST", action: "/resources/consent-tos" },
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <article className="prose-sm bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-xxl w-full mx-4">
+        <h2 className=" text-gray-900 dark:text-gray-100">
+          {t("fileUpload.consent.title")}
+        </h2>
+        <p className=" text-gray-600 dark:text-gray-300">
+          {t("fileUpload.consent.block0")}
+        </p>
+        {blocks.map(function ([firstSentence, rest]) {
+          return (
+            <p className=" text-gray-600 dark:text-gray-300">
+              <span className="font-bold">{firstSentence}</span>
+              <span className="text-gray-600 dark:text-gray-300">{rest}</span>
+            </p>
+          );
+        })}
+
+        <label>
+          <input
+            ref={checkBoxRef}
+            type="checkbox"
+            className={isHighlighted ? "border-red-500" : ""}
+            checked={isChecked}
+            onClick={() => setIsChecked(!isChecked)}
+          />
+          <span className={isHighlighted ? "text-red-500 ms-2" : "ms-2"}>
+            {t("fileUpload.consent.consent")}
+          </span>
+        </label>
+        <p className=" text-gray-600 dark:text-gray-300">
+          {t("fileUpload.consent.footer")}
+        </p>
+        <div className="flex justify-end space-x-3">
+          <button
+            type="button"
+            onClick={onDisagree}
+            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+          >
+            {t("fileUpload.consent.disagree")}
+          </button>
+          <button
+            type="button"
+            onClick={handleConsent}
+            disabled={consentFetcher.state !== "idle"}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+          >
+            {consentFetcher.state !== "idle"
+              ? t("common.loading")
+              : t("fileUpload.consent.agree")}
+          </button>
+        </div>
+      </article>
+    </div>
   );
 }

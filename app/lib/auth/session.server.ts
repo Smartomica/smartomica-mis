@@ -10,6 +10,7 @@ export interface User {
   role: "admin" | "user";
   tokensUsed: number;
   tokensRemaining: number;
+  lastConsentAt: Date | null;
 }
 
 // Hard-coded passwords for demo accounts - replace with OAuth later
@@ -73,6 +74,7 @@ export async function getUser(request: Request): Promise<User | null> {
     role: dbUser.role.toLowerCase() as "admin" | "user",
     tokensUsed: dbUser.tokensUsed,
     tokensRemaining: dbUser.tokensRemaining,
+    lastConsentAt: dbUser.lastConsentAt,
   };
 }
 
@@ -129,5 +131,6 @@ export async function login(
     role: dbUser.role.toLowerCase() as "admin" | "user",
     tokensUsed: dbUser.tokensUsed,
     tokensRemaining: dbUser.tokensRemaining,
+    lastConsentAt: dbUser.lastConsentAt,
   };
 }

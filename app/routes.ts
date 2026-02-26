@@ -13,6 +13,7 @@ export default [
   route("documents/export/:documentId", "routes/documents/export.ts"),
   route("uploads/presigned", "routes/uploads/presigned.ts"),
   route("resources/retry-document", "routes/resources/retry-document.tsx"),
+  route("resources/consent-tos", "routes/api/consent.ts"),
   route("health", "routes/health.ts"),
   route("admin", "routes/admin/index.tsx"),
 ] satisfies RouteConfig;

@@ -105,7 +105,21 @@
     "selected": "File selected",
     "selectedPlural": "Files selected",
     "clearAll": "Clear all",
-    "addMore": "Add more files"
+    "addMore": "Add more files",
+    "consent": {
+      "title": "Data Processing Consent",
+      "block0": "By uploading documents to this service, you confirm that you have read and agree to the following:",
+      "block1": "What we process. Your uploaded medical documents may contain personal and health-related information. Before any AI processing takes place, our system automatically removes direct personal identifiers (such as name, date of birth, and contact details) on our servers in Israel. The de-identified content is then processed by AI language models to generate your translation or clinical summary.",
+      "block2": "Who processes your data. AI processing is performed by vetted third-party language model providers operating under data processing agreements. No provider is permitted to use your data for training or any purpose beyond delivering your result.",
+      "block3": "How we use your data. Your documents are processed solely to provide the translation or summary you requested. We do not use your data for research, advertising, or model training.",
+      "block4": "Important limitation. Translations and summaries are AI-generated and intended as a reference aid only. They are not a substitute for review by a licensed medical professional. Do not make clinical decisions based solely on this output.",
+      "block5": "Your rights. Under Israel's Protection of Privacy Law (including Amendment 13, in effect August 2025), you have the right to access, correct, or request deletion of your personal data. To exercise these rights, contact us at [contact email].",
+      "block6": "Withdrawing consent. You may withdraw consent at any time by contacting us. Withdrawal does not affect processing already completed.",
+      "consent": "I understand that my documents will be processed as described above, and I consent to proceed.",
+      "footer": "By proceeding, you confirm you are authorized to share the documents you upload.",
+      "agree": "I Agree",
+      "disagree": "Cancel"
+    }
   },
   "documents": {
     "title": "Your Documents",
