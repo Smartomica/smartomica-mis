@@ -16,6 +16,7 @@ ${cleanContent}
 </html>`;
 
   const buffer = await HtmlToDocx(fullHtml, null, {
+    font: "Colibri",
     table: { row: { cantSplit: true } },
     footer: true,
     pageNumber: true,

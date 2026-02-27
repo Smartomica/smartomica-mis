@@ -94,7 +94,7 @@ export async function resolveMisPrompt(
           (p) =>
             p.type === "text" &&
             p.tags.includes("glossary") &&
-            p.tags.includes(sourceLanguage),
+            p.tags.includes(targetLanguage),
         )
         ?.at(0)?.name;
 

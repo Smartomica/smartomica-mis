@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useFormUpload, type FormUploadFile } from "~/hooks/useFormUpload";
 import { UploadIcon, Cross2Icon, UpdateIcon } from "@radix-ui/react-icons";
+import { t } from "~/lib/i18n/i18n";
 
 interface DirectUploadProps {
   onFilesReady: (files: FormUploadFile[]) => void;
@@ -27,7 +28,7 @@ export function DirectUpload({
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
-  const MAX_FILE_SIZE = 30 * 1024 * 1024; // 30MB
+  const MAX_FILE_SIZE = 50 * 1024 * 1024; // 30MB
 
   const handleFileSelect = async (fileList: FileList) => {
     if (disabled || fileList.length === 0) return;
@@ -37,9 +38,7 @@ export function DirectUpload({
       (file) => file.size > MAX_FILE_SIZE,
     );
     if (oversizedFile) {
-      setUploadError(
-        `File "${oversizedFile.name}" exceeds the 10MB size limit.`,
-      );
+      setUploadError(`"${oversizedFile.name}" ${t("fileUplaod.maxSize")}`);
       return;
     }
 

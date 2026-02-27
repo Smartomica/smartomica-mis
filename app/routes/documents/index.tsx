@@ -235,8 +235,7 @@ export default function Documents() {
   const processingCount = documents.filter(
     (doc) =>
       doc.status === DocumentStatus.PROCESSING ||
-      doc.status === DocumentStatus.PENDING ||
-      doc.status === DocumentStatus.QUEUED,
+      doc.status === DocumentStatus.PENDING,
   ).length;
 
   const prevProcessingCount = useRef(processingCount);

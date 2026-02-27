@@ -100,7 +100,7 @@
     "dragDrop": "Drag and drop file here or click to select",
     "dragDropMultiple": "Drag and drop files here or click to select",
     "supportedFormats": "Supported formats: PDF, DOCX, TXT, JPG, PNG",
-    "maxSize": "Maximum size: 10 MB",
+    "maxSize": "maximum size: 50 MB",
     "multipleFilesAllowed": "Multiple files can be uploaded",
     "selected": "File selected",
     "selectedPlural": "Files selected",

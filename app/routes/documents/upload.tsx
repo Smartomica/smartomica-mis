@@ -6,8 +6,6 @@ import {
   useFetcher,
   useLoaderData,
   useNavigate,
-  type Fetcher,
-  type FetcherWithComponents,
 } from "react-router";
 import type { Route } from "./+types/upload";
 import { requireUser } from "~/lib/auth/session.server";
@@ -33,12 +31,6 @@ export async function action({ request }: Route.ActionArgs) {
   const sourceLanguage = formData.get("sourceLanguage") as string;
   const targetLanguage = formData.get("targetLanguage") as string;
   const mode = formData.get("mode") as ProcessingMode;
-
-  if (!user.lastConsentAt) {
-    return {
-      error: t("fileUpload.consent.text"),
-    };
-  }
 
   const rawFiles = formData.get("files") as string;
 
@@ -95,23 +87,30 @@ export default function DocumentUpload() {
   const uploadFetcher = useFetcher<typeof action>();
   const consentFetcher = useFetcher<{ success: boolean }>();
 
+  const formRef = useRef<HTMLFormElement>(null);
+
   const [uploadedFiles, setUploadedFiles] = useState<FormUploadFile[]>([]);
   const [sourceLanguage, setSourceLanguage] = useState(Lang.Auto);
   const [targetLanguage, setTargetLanguage] = useState("");
+  const [isSubmitPressed, setSubmitPressed] = useState(false);
   const [mode, setMode] = useState<ProcessingMode>(ProcessingMode.TRANSLATE);
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [hasConsented, setHasConsented] = useState(!!user.lastConsentAt);
 
-  const isSubmitting = uploadFetcher.state === "submitting";
+  const isSubmitting = isSubmitPressed || uploadFetcher.state === "submitting";
 
   useEffect(() => {
-    if (consentFetcher.data?.success) {
-      setHasConsented(true);
-      setShowConsentModal(false);
-    }
+    if (!consentFetcher.data?.success) return;
+
+    setHasConsented(true);
+    setShowConsentModal(false);
+
+    if (!formRef.current) return;
+    formRef.current.submit();
   }, [consentFetcher.data]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    setSubmitPressed(true);
     e.preventDefault();
 
     if (!uploadedFiles.length || !sourceLanguage || !targetLanguage || !mode) {
@@ -144,13 +143,19 @@ export default function DocumentUpload() {
     });
   };
 
+  function onConsentAgree() {
+    consentFetcher.submit(
+      {},
+      { method: "POST", action: "/resources/consent-tos" },
+    );
+  }
+
   useEffect(() => {
     const result = uploadFetcher.data;
     if (!result) return;
 
     if (result.error) {
       console.error(result.error);
-      // toast.error(result.error);
     }
   }, [uploadFetcher.data]);
 
@@ -159,8 +164,9 @@ export default function DocumentUpload() {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {showConsentModal && (
           <DataProcessingConsent
+            isLoading={consentFetcher.state !== "idle"}
             onDisagree={() => setShowConsentModal(false)}
-            consentFetcher={consentFetcher}
+            onAgree={onConsentAgree}
           />
         )}
 
@@ -175,6 +181,7 @@ export default function DocumentUpload() {
 
         <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
           <Form
+            ref={formRef}
             method="post"
             encType="multipart/form-data"
             onSubmit={handleSubmit}
@@ -325,13 +332,13 @@ export default function DocumentUpload() {
 }
 
 function DataProcessingConsent({
-  consentFetcher,
+  isLoading,
   onDisagree,
+  onAgree,
 }: {
-  consentFetcher: FetcherWithComponents<{
-    success: boolean;
-  }>;
+  isLoading: boolean;
   onDisagree(): void;
+  onAgree(): void;
 }) {
   const [isChecked, setIsChecked] = useState(false);
   const [isHighlighted, setIsHighlighted] = useState(false);
@@ -359,10 +366,7 @@ function DataProcessingConsent({
       checkBoxRef.current.focus();
       return;
     }
-    consentFetcher.submit(
-      {},
-      { method: "POST", action: "/resources/consent-tos" },
-    );
+    onAgree();
   }
 
   return (
@@ -376,7 +380,10 @@ function DataProcessingConsent({
         </p>
         {blocks.map(function ([firstSentence, rest]) {
           return (
-            <p className=" text-gray-600 dark:text-gray-300">
+            <p
+              key={firstSentence}
+              className=" text-gray-600 dark:text-gray-300"
+            >
               <span className="font-bold">{firstSentence}</span>
               <span className="text-gray-600 dark:text-gray-300">{rest}</span>
             </p>
@@ -389,7 +396,7 @@ function DataProcessingConsent({
             type="checkbox"
             className={isHighlighted ? "border-red-500" : ""}
             checked={isChecked}
-            onClick={() => setIsChecked(!isChecked)}
+            onChange={() => setIsChecked(!isChecked)}
           />
           <span className={isHighlighted ? "text-red-500 ms-2" : "ms-2"}>
             {t("fileUpload.consent.consent")}
@@ -409,12 +416,10 @@ function DataProcessingConsent({
           <button
             type="button"
             onClick={handleConsent}
-            disabled={consentFetcher.state !== "idle"}
+            disabled={isLoading}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
           >
-            {consentFetcher.state !== "idle"
-              ? t("common.loading")
-              : t("fileUpload.consent.agree")}
+            {isLoading ? t("common.loading") : t("fileUpload.consent.agree")}
           </button>
         </div>
       </article>
