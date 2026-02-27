@@ -49,7 +49,7 @@ export function Layout({ children, user }: LayoutProps) {
                     {t("dashboard.welcome", { name: user.name })}
                   </span>
                   <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {user.tokensRemaining} tokens
+                    Tokens remaining: {user.tokensRemaining?.toLocaleString()}
                   </span>
                   {user.role === "admin" && (
                     <Link
@@ -131,7 +131,7 @@ export function Layout({ children, user }: LayoutProps) {
                     {t("dashboard.welcome", { name: user.name })}
                   </div>
                   <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    {user.tokensRemaining} tokens
+                    Tokens remaining: {user.tokensRemaining?.toLocaleString()}
                   </div>
                 </div>
               </div>

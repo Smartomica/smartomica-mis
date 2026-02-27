@@ -3,7 +3,12 @@ import type { Route } from "./+types/home";
 import { getUser } from "~/lib/auth/session.server";
 import { Layout } from "~/components/Layout";
 import { t } from "~/lib/i18n/i18n";
-import { FileTextIcon, LockClosedIcon, GlobeIcon, LightningBoltIcon } from "@radix-ui/react-icons";
+import {
+  FileTextIcon,
+  LockClosedIcon,
+  GlobeIcon,
+  LightningBoltIcon,
+} from "@radix-ui/react-icons";
 
 export async function loader({ request }: Route.LoaderArgs) {
   return {
@@ -124,7 +129,8 @@ export default function Home() {
                 {t("home.howItWorks.title")}
               </h2>
               <p className="mt-3 max-w-3xl text-lg text-gray-500 dark:text-gray-400">
-                Simple 3-step process to translate your medical documents
+                A simple 2-step process to translate or summarize your medical
+                documents
               </p>
               <dl className="mt-10 space-y-10">
                 <div className="relative">

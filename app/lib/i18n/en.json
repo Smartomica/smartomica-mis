@@ -11,7 +11,7 @@
     "save": "Save",
     "delete": "Delete",
     "edit": "Edit",
-    "back": "Back",
+    "back": "Cancel",
     "next": "Next",
     "upload": "Upload",
     "download": "Download",
@@ -27,28 +27,28 @@
   },
   "home": {
     "hero": {
-      "title": "Clinical Synopsis Engine with Artificial Intelligence",
-      "subtitle": "Fast, accurate and confidential translation between all European languages",
-      "cta": "Start Translation",
+      "title": "Medical Translation & Clinical Summaries",
+      "subtitle": "AI-assisted translation and summaries of medical documents- fast, accurate, and confidential",
+      "cta": "Upload a Document",
       "ctaSecondary": "Learn More"
     },
     "features": {
       "title": "Why Choose Us",
       "aiTranslation": {
         "title": "AI Translation",
-        "description": "Advanced AI technology for accurate medical terminology translation"
+        "description": "Precise medical terminology- translations and summaries ready to share with your doctor"
       },
       "security": {
         "title": "Complete Security",
-        "description": "GDPR compliant, data encryption and privacy protection"
+        "description": "Personal identifiers are removed before processing. Data is encrypted in transit and at rest."
       },
       "multilingual": {
         "title": "Multilingual",
-        "description": "Support for all European languages with automatic detection"
+        "description": "Multiple languages supported, with automatic source language detection"
       },
       "fast": {
         "title": "Fast Processing",
-        "description": "Automatic translation in minutes"
+        "description": "Results typically ready in minutes"
       }
     },
     "howItWorks": {
@@ -59,11 +59,11 @@
       },
       "step2": {
         "title": "Choose Languages",
-        "description": "Specify source and target languages"
+        "description": "Select source (or use Auto-detect) and target language"
       },
       "step3": {
         "title": "Get Result",
-        "description": "Receive ready translation instantly"
+        "description": "Download or view your result- usually ready in minutes"
       }
     }
   },
@@ -83,23 +83,24 @@
   },
   "dashboard": {
     "welcome": "Welcome, {name}",
+    "manageDocuments": "Manage your documents and results",
     "stats": {
       "totalDocuments": "Total Documents",
       "inProgress": "In Progress",
       "completed": "Completed"
     },
     "recentDocuments": "Recent Documents",
-    "uploadNew": "Upload New Document",
-    "uploadNewDescription": "Upload a new document to get started",
-    "myDocuments": "My Documents",
-    "viewAllDocuments": "View all your documents",
+    "uploadNew": "Upload a Document",
+    "uploadNewDescription": "Upload a document to start a translation or clinical summary",
+    "myDocuments": "Documents",
+    "viewAllDocuments": "View all documents",
     "noDocuments": "No documents",
     "uploadFirstDocument": "Upload first document"
   },
   "fileUpload": {
-    "dragDrop": "Drag and drop file here or click to select",
+    "dragDrop": "Drag & drop files here, or click to browse",
     "dragDropMultiple": "Drag and drop files here or click to select",
-    "supportedFormats": "Supported formats: PDF, DOCX, TXT, JPG, PNG",
+    "supportedFormats": "PDF, DOCX, DOC, TXT, PNG, JPG, JPEG · Max 10 MB per file",
     "maxSize": "maximum size: 50 MB",
     "multipleFilesAllowed": "Multiple files can be uploaded",
     "selected": "File selected",
@@ -122,9 +123,9 @@
     }
   },
   "documents": {
-    "title": "Your Documents",
-    "uploadButton": "Upload Documents",
-    "manageDocuments": "Manage your documents and translations",
+    "title": "Documents",
+    "uploadButton": "Upload Document",
+    "manageDocuments": "Manage your documents, translations, and summaries",
     "noDocuments": "No documents found",
     "uploadFirst": "Upload the first document to get started",
     "upload": {
@@ -135,7 +136,7 @@
       "targetLanguage": "Target Language",
       "mode": "Processing Mode",
       "processing": "Processing...",
-      "submit": "Upload and Process",
+      "submit": "Upload & Start",
       "uploadFiles": "Upload {count} files",
       "selectLanguage": "Select language",
       "selectMode": "Select mode",
@@ -156,8 +157,8 @@
         "description": "Extract text from images"
       },
       "TRANSLATE": {
-        "label": "Translate",
-        "description": "Translate a document"
+        "label": "Translation",
+        "description": "translate the document into the selected language"
       },
       "TRANSLATE_JUR": {
         "label": "Translate Legal",
@@ -168,7 +169,7 @@
         "description": "Summarize document"
       },
       "SUMMARISE_ONCO": {
-        "label": "Summarize Oncological",
+        "label": "Oncology Summary",
         "description": "Summarize oncological document"
       }
     },
@@ -200,7 +201,7 @@
     }
   },
   "languages": {
-    "auto": "Auto",
+    "auto": "Auto-detected",
     "en": "English",
     "ru": "Russian",
     "es": "Spanish",

@@ -175,7 +175,7 @@ export default function DocumentUpload() {
             {t("documents.upload.title")}
           </h1>
           <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            Upload documents for AI-powered translation and processing
+            Upload medical documents for translation or clinical summary
           </p>
         </div>
 

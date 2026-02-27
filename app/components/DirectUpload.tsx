@@ -137,13 +137,13 @@ export function DirectUpload({
         <div className="space-y-2">
           <UploadIcon className="mx-auto h-12 w-12 text-gray-400" />
           <div className="text-sm text-gray-600">
+            Drag & drop files here, or{" "}
             <span className="font-medium text-blue-600 hover:text-blue-500">
-              Click to upload
-            </span>{" "}
-            or drag and drop
+              click to browse
+            </span>
           </div>
           <p className="text-xs text-gray-500">
-            PDF, DOC, DOCX, TXT, PNG, JPG, JPEG up to 10MB
+            PDF, DOCX, DOC, TXT, PNG, JPG, JPEG · Max 50 MB per file
           </p>
         </div>
       </div>

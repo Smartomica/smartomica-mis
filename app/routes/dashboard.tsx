@@ -231,7 +231,7 @@ export default function Dashboard() {
                     to="/documents/upload"
                     className="mt-3 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-blue-600 dark:text-blue-700 bg-white dark:bg-gray-100 hover:bg-blue-50 dark:hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                   >
-                    {t("common.upload")}
+                    {t("dashboard.uploadNew")}
                   </Link>
                 </div>
               </div>
@@ -255,7 +255,7 @@ export default function Dashboard() {
                     to="/documents"
                     className="mt-3 inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                   >
-                    View Documents
+                    {t("dashboard.viewAllDocuments")}
                   </Link>
                 </div>
               </div>

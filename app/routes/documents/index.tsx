@@ -363,7 +363,7 @@ export default function Documents() {
                             }
                           >
                             {item.isBatch
-                              ? `Batch of ${item.documentCount} files`
+                              ? `Batch (${item.documentCount} files)`
                               : item.files[0].name}
                           </Link>
                         </h3>
@@ -407,7 +407,11 @@ export default function Documents() {
                           {t("documents.table.createdAt")}
                         </p>
                         <p className="font-medium text-gray-900 dark:text-gray-100">
-                          {new Date(item.createdAt).toLocaleDateString("en-US")}
+                          {new Date(item.createdAt).toLocaleDateString("en-GB", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
                         </p>
                       </div>
                     </div>
@@ -433,7 +437,7 @@ export default function Documents() {
                           Tokens Used
                         </p>
                         <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {item.tokensUsed.toFixed(2)}
+                          {item.tokensUsed.toLocaleString()}
                         </p>
                       </div>
                     )}
@@ -465,7 +469,7 @@ export default function Documents() {
                   <Link
                     to={`/documents/${item.id}`}
                     className="p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-white dark:hover:bg-gray-600 rounded-full transition-colors"
-                    title={t("common.view")}
+                    title="View result"
                   >
                     <OpenInNewWindowIcon className="h-5 w-5" />
                   </Link>
