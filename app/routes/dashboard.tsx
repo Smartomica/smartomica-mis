@@ -1,4 +1,4 @@
-import { Link, useLoaderData } from "react-router";
+import { Link, useLoaderData, Form, useActionData, redirect } from "react-router";
 import type { Route } from "./+types/dashboard";
 import { requireUser } from "~/lib/auth/session.server";
 import { Layout } from "~/components/Layout";
@@ -6,6 +6,23 @@ import { t } from "~/lib/i18n/i18n";
 import { prisma } from "~/lib/db/client";
 import { DocumentStatus } from "~/generated/client/enums";
 import { FileTextIcon, TimerIcon, CheckCircledIcon, UploadIcon, PlusIcon } from "@radix-ui/react-icons";
+
+export async function action({ request }: Route.ActionArgs) {
+  const user = await requireUser(request);
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+
+  if (intent === "revoke-consent") {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastConsentAt: null },
+    });
+    return { success: true };
+  }
+
+  return null;
+}
+
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await requireUser(request);
@@ -69,11 +86,28 @@ function mapProcessingMode(mode: string) {
 
 export default function Dashboard() {
   const { user, stats, recentDocuments } = useLoaderData<typeof loader>();
+  const actionData = useActionData<typeof action>();
 
   return (
     <Layout user={user}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {actionData?.success && (
+          <div className="mb-8 rounded-md bg-green-50 dark:bg-green-900/30 p-4">
+            <div className="flex">
+              <div className="shrink-0">
+                <CheckCircledIcon className="h-5 w-5 text-green-400" aria-hidden="true" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm font-medium text-green-800 dark:text-green-200">
+                  Consent revoked successfully.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="mb-8">
+
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             {t("dashboard.welcome", { name: user.name })}
           </h1>
@@ -84,6 +118,7 @@ export default function Dashboard() {
 
         {/* Stats */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-3 mb-8">
+
           <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
@@ -145,7 +180,39 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Consent Management - Only show if consent is given */}
+        {user.lastConsentAt && (
+          <div className="mb-8 bg-white dark:bg-gray-800 border bg-red-50/50 dark:bg-red-900/10 border-red-200 dark:border-red-800 rounded-lg shadow-sm">
+            <div className="px-4 py-5 sm:p-6">
+              <div className="sm:flex sm:items-start sm:justify-between">
+                <div>
+                  <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
+                    Data Collection Consent
+                  </h3>
+                  <div className="mt-2 max-w-xl text-sm text-gray-500 dark:text-gray-400">
+                    <p>
+                      You have previously consented to data collection for service improvement. You can revoke this consent at any time.
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-5 sm:mt-0 sm:ml-6 sm:shrink-0 sm:flex sm:items-center">
+                  <Form method="post">
+                    <input type="hidden" name="intent" value="revoke-consent" />
+                    <button
+                      type="submit"
+                      className="inline-flex items-center justify-center px-4 py-2 border border-transparent font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:text-sm dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50"
+                    >
+                      Revoke Consent
+                    </button>
+                  </Form>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Quick Actions */}
+
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 mb-8">
           <div className="bg-linear-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 rounded-lg shadow-lg">
             <div className="p-6">

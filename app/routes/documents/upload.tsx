@@ -106,12 +106,12 @@ export default function DocumentUpload() {
     setShowConsentModal(false);
 
     if (!formRef.current) return;
-    formRef.current.submit();
+    handleSubmit(null);
   }, [consentFetcher.data]);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement> | null) => {
     setSubmitPressed(true);
-    e.preventDefault();
+    e?.preventDefault();
 
     if (!uploadedFiles.length || !sourceLanguage || !targetLanguage || !mode) {
       return;

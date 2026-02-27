@@ -25,6 +25,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       tokensRemaining: true,
       createdAt: true,
       lastLoginAt: true,
+      lastConsentAt: true,
       _count: {
         select: {
           documents: true,
@@ -182,6 +183,21 @@ export async function action({ request }: Route.ActionArgs) {
         return {
           success: "Tokens removed successfully",
         };
+      }
+
+      case "revokeConsent": {
+        const userId = formData.get("userId") as string;
+
+        if (!userId) {
+          return { error: "User ID is required" };
+        }
+
+        await prisma.user.update({
+          where: { id: userId },
+          data: { lastConsentAt: null },
+        });
+
+        return { success: "Consent revoked successfully" };
       }
 
       default:
@@ -471,6 +487,28 @@ export default function AdminDashboard() {
                               </button>
                             </Form>
                           </div>
+                          {userData.lastConsentAt && (
+                            <div className="mt-1">
+                              <Form method="post" className="inline">
+                                <input
+                                  type="hidden"
+                                  name="actionType"
+                                  value="revokeConsent"
+                                />
+                                <input
+                                  type="hidden"
+                                  name="userId"
+                                  value={userData.id}
+                                />
+                                <button
+                                  type="submit"
+                                  className="px-2 py-1 bg-gray-500 dark:bg-gray-600 text-white text-xs rounded hover:bg-gray-600 dark:hover:bg-gray-500"
+                                >
+                                  Revoke Consent
+                                </button>
+                              </Form>
+                            </div>
+                          )}
                         </td>
                       </tr>
                     ))}
