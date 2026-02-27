@@ -40,6 +40,7 @@ export const SUPPORTED_LANGUAGES: Language[] = [
   { code: "es", name: "Spanish", flag: "🇪🇸" },
 ];
 
+// @ts-expect-error
 export const PROCESSING_MODES: {
   [key in ProcessingMode]: {
     label: string;
@@ -54,10 +55,11 @@ export const PROCESSING_MODES: {
     label: "Translate",
     description: "Translate a document to target language",
   },
-  [ProcessingMode.TRANSLATE_JUR]: {
-    label: "Translate Legal",
-    description: "Translate a legal document",
-  },
+  // @todo: uncomment when ready
+  // [ProcessingMode.TRANSLATE_JUR]: {
+  //   label: "Translate Legal",
+  //   description: "Translate a legal document",
+  // },
   [ProcessingMode.SUMMARISE]: {
     label: "Summarize",
     description: "Generate summary of document",

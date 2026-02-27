@@ -93,7 +93,7 @@ export default function DocumentUpload() {
   const [sourceLanguage, setSourceLanguage] = useState(Lang.Auto);
   const [targetLanguage, setTargetLanguage] = useState("");
   const [isSubmitPressed, setSubmitPressed] = useState(false);
-  const [mode, setMode] = useState<ProcessingMode>(ProcessingMode.TRANSLATE);
+  const [mode, setMode] = useState<ProcessingMode>(ProcessingMode.SUMMARISE);
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [hasConsented, setHasConsented] = useState(!!user.lastConsentAt);
 
@@ -297,7 +297,7 @@ export default function DocumentUpload() {
                   onClick={() => navigate(-1)}
                   className="bg-white dark:bg-gray-700 py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                 >
-                  {t("common.back")}
+                  {t("common.cancel")}
                 </button>
 
                 <button
