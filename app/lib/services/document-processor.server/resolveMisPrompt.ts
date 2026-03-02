@@ -8,6 +8,7 @@ import {
 } from "~/lib/langfuse.server";
 import type { Lang, SimplifiedChatMessage } from "./const";
 import { SUPPORTED_LANGUAGES } from "~/types/document";
+import { PromptType } from "@langfuse/core";
 
 export async function resolveMisPrompt(
   processingMode: ProcessingMode,
@@ -16,104 +17,70 @@ export async function resolveMisPrompt(
 ): Promise<SimplifiedChatMessage[]> {
   const languageSetting = [sourceLanguage, targetLanguage] as const;
   const misPrompts = await listPrompts({ tag: "mis", limit: 100 });
-  const sdk = getLangfuseSDK();
+
+  const glossarySourceTextPromptName = getTextName("glossary", sourceLanguage);
+  const glossaryTargetTextPromptName = getTextName("glossary", targetLanguage);
+  const glossarySourceTextPrompt = await getPrompt(
+    PromptType.Text,
+    glossarySourceTextPromptName,
+  );
+  const glossaryTargetTextPrompt = await getPrompt(
+    PromptType.Text,
+    glossaryTargetTextPromptName,
+  );
+
+  function getChatName(...tags: string[]) {
+    return misPrompts.data
+      .filter(
+        (p) => p.type === "chat" && tags.every((tag) => p.tags.includes(tag)),
+      )
+      ?.at(0)?.name;
+  }
+
+  function getTextName(...tags: string[]) {
+    return misPrompts.data
+      .filter(
+        (p) => p.type === "text" && tags.every((tag) => p.tags.includes(tag)),
+      )
+      ?.at(0)?.name;
+  }
 
   switch (processingMode) {
     case ProcessingMode.OCR:
-      const ocrChatPromptName = misPrompts.data
-        .filter(
-          (p) =>
-            p.type === "chat" &&
-            p.tags.includes("ocr") &&
-            p.tags.includes("chat"),
-        )
-        ?.at(0)?.name;
+      const ocrChatPromptName = getChatName("ocr");
+      const ocrChatPrompt = await getPrompt(PromptType.Chat, ocrChatPromptName);
 
-      const glossaryTextPromptName = misPrompts.data
-        .filter(
-          (p) =>
-            p.type === "text" &&
-            p.tags.includes("glossary") &&
-            p.tags.includes(sourceLanguage),
-        )
-        ?.at(0)?.name;
-
-      let ocrChatPrompt = ocrChatPromptName
-        ? await sdk.prompt.get(ocrChatPromptName, {
-            type: "chat",
-          })
-        : null;
-
-      let ocrTextPrompt = glossaryTextPromptName
-        ? await sdk.prompt.get(glossaryTextPromptName, {
-            type: "text",
-          })
-        : null;
-
-      return combinePrompts(languageSetting, ocrChatPrompt, ocrTextPrompt);
+      return combinePrompts(
+        languageSetting,
+        ocrChatPrompt,
+        glossaryTargetTextPrompt,
+      );
 
     case ProcessingMode.SUMMARISE:
-      const summariseChatPromptName = misPrompts.data
-        .filter((p) => p.type === "chat" && p.tags.includes("summary"))
-        .at(0)?.name;
-
-      const summariseTextPromptName = misPrompts.data
-        .filter(
-          (p) =>
-            p.type === "text" &&
-            p.tags.includes("glossary") &&
-            p.tags.includes(targetLanguage),
-        )
-        ?.at(0)?.name;
-
-      let summariseChatPrompt = summariseChatPromptName
-        ? await sdk.prompt.get(summariseChatPromptName, {
-            type: "chat",
-          })
-        : null;
-
-      let summariseTextPrompt = summariseTextPromptName
-        ? await sdk.prompt.get(summariseTextPromptName, {
-            type: "text",
-          })
-        : null;
+      const summariseChatPromptName = getChatName("summary");
+      const summariseChatPrompt = await getPrompt(
+        PromptType.Chat,
+        summariseChatPromptName,
+      );
 
       return combinePrompts(
         languageSetting,
         summariseChatPrompt,
-        summariseTextPrompt,
+        glossaryTargetTextPrompt,
       );
 
     case ProcessingMode.SUMMARISE_ONCO:
-      const summariseOncoChatPromptName = misPrompts.data
-        .filter((p) => p.type === "chat" && p.tags.includes("oncology"))
-        .at(0)?.name;
+      const summariseOncoChatPromptName = getChatName("oncology");
 
-      const summariseOncoTextPromptName = misPrompts.data
-        .filter(
-          (p) =>
-            p.type === "text" &&
-            p.tags.includes("glossary") &&
-            p.tags.includes(targetLanguage),
-        )
-        ?.at(0)?.name;
-
-      let summariseOncoChatPrompt = summariseOncoChatPromptName
-        ? await sdk.prompt.get(summariseOncoChatPromptName, {
-            type: "chat",
-          })
-        : null;
-
-      let summariseOncoTextPrompt = summariseOncoTextPromptName
-        ? await sdk.prompt.get(summariseOncoTextPromptName, {
-            type: "text",
-          })
-        : null;
+      const summariseOncoChatPrompt = await getPrompt(
+        PromptType.Chat,
+        summariseOncoChatPromptName,
+      );
 
       return combinePrompts(
         languageSetting,
         summariseOncoChatPrompt,
-        summariseOncoTextPrompt,
+        glossaryTargetTextPrompt,
       );
 
     case ProcessingMode.TRANSLATE:
@@ -130,34 +97,12 @@ export async function resolveMisPrompt(
               p.tags.includes(targetLanguage),
           )
           .at(0)?.name ||
-        misPrompts.data
-          .filter(
-            (p) =>
-              p.type === "chat" &&
-              p.tags.includes("translate") &&
-              p.tags.includes("from-any-lang") &&
-              p.tags.includes(targetLanguage),
-          )
-          .at(0)?.name;
+        getChatName("translate", "from-any-lang", targetLanguage);
 
-      const glossarySourceTextPromptName = misPrompts.data
-        .filter((p) => p.type === "text" && p.tags.includes(sourceLanguage))
-        .at(0)?.name;
-
-      const glossaryTargetTextPromptName = misPrompts.data
-        .filter((p) => p.type === "text" && p.tags.includes(targetLanguage))
-        .at(0)?.name;
-
-      const langPairChatPrompt = langPairChatPromptName
-        ? await sdk.prompt.get(langPairChatPromptName, { type: "chat" })
-        : null;
-
-      const glossarySourceTextPrompt = glossarySourceTextPromptName
-        ? await sdk.prompt.get(glossarySourceTextPromptName, { type: "text" })
-        : null;
-      const glossaryTargetTextPrompt = glossaryTargetTextPromptName
-        ? await sdk.prompt.get(glossaryTargetTextPromptName, { type: "text" })
-        : null;
+      const langPairChatPrompt = await getPrompt(
+        PromptType.Chat,
+        langPairChatPromptName,
+      );
 
       return combinePrompts(
         languageSetting,
@@ -194,4 +139,25 @@ function combinePrompts(
   );
 
   return [...combinedPrompt, ...combinedTextPrompts];
+}
+
+function getPrompt(
+  type: typeof PromptType.Chat,
+  name: string | void,
+): Promise<ChatPromptClient | null>;
+
+function getPrompt(
+  type: typeof PromptType.Text,
+  name: string | void,
+): Promise<TextPromptClient | null>;
+
+async function getPrompt(
+  type: typeof PromptType.Chat | typeof PromptType.Text,
+  name: string | void,
+) {
+  if (!name) return null;
+  const sdk = getLangfuseSDK();
+
+  if (type === PromptType.Chat) return await sdk.prompt.get(name, { type });
+  return await sdk.prompt.get(name, { type });
 }
