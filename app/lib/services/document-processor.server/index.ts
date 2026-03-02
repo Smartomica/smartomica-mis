@@ -26,6 +26,7 @@ import { resolveMisPrompt } from "./resolveMisPrompt";
 import { estimateTokensNeeded, estimateTokensUsed } from "./tokens";
 import { clearMarkdownAroundJson } from "./clearMarkdown";
 import { extractText } from "./extractTextWihLLM";
+import { saveDocumentOcrMeta } from "../document.server";
 
 export async function processDocument({
   files,
@@ -243,19 +244,12 @@ async function processBatchAsync(
 
       const generatedContentString =
         response.choices[0]?.message?.content || "";
-      let generatedContent = clearMarkdownAroundJson(generatedContentString);
-
-      try {
-        generatedContent = JSON.parse(generatedContentString).text;
-        generatedContent.replaceAll("\n", "");
-      } catch (error) {
-        console.error("Failed to parse generated JSON:", error);
-      }
+      const generatedContent = clearMarkdownAroundJson(generatedContentString);
 
       const processingTime = Date.now() - startTime;
       const tokensUsed = estimateTokensUsed(
         combinedExtractedText,
-        generatedContent,
+        generatedContent.text,
       );
 
       // 4. Save results to Batch and update Job
@@ -264,7 +258,7 @@ async function processBatchAsync(
         where: { id: batchId },
         data: {
           status: "COMPLETED",
-          combinedResult: generatedContent,
+          combinedResult: generatedContent.text,
         },
       });
 
@@ -278,7 +272,7 @@ async function processBatchAsync(
         where: { batchId },
         data: {
           status: "COMPLETED",
-          translatedText: generatedContent, // Or maybe "See Batch Result"? Let's verify what UI expects.
+          translatedText: generatedContent.text, // Or maybe "See Batch Result"? Let's verify what UI expects.
           tokensUsed: Math.ceil(tokensUsed / documents.length), // Distribute tokens?
           processingTimeMs: Math.ceil(processingTime / documents.length),
           completedAt: new Date(),
@@ -318,13 +312,16 @@ async function processBatchAsync(
 
       span.update({
         output: {
-          result: generatedContent,
+          result: generatedContent.text,
+          lang: generatedContent.lng,
+          error: generatedContent.error,
+          comment: generatedContent.comment,
           tokensUsed,
           processingTime,
         },
       });
 
-      return { content: generatedContent, tokensUsed };
+      return { content: generatedContent.text, tokensUsed };
     });
   } catch (error) {
     console.error("Batch processing failed:", error);
@@ -439,9 +436,10 @@ async function extractTextFromDocument(
 
       console.log(`Converted PDF to ${images.length} images`);
 
-      const fullText = await extractText(openAi, ...imageUrls);
+      const extractedData = await extractText(openAi, ...imageUrls);
+      await saveDocumentOcrMeta(document, extractedData);
 
-      return fullText;
+      return extractedData.text;
     } else if (
       document.mimeType ===
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -505,7 +503,10 @@ async function extractTextFromDocument(
       console.log("Using OpenAI Vision for image...");
       const fileUrl = await getFileUrl(document.filePath);
 
-      return await extractText(openAi, fileUrl);
+      const extractedData = await extractText(openAi, fileUrl);
+      await saveDocumentOcrMeta(document, extractedData);
+
+      return extractedData.text;
     } else {
       // For text-based files or unsupported formats
       const fileUrl = await getFileUrl(document.filePath);

@@ -3,11 +3,12 @@ import { OPENROUTER_MODEL_VISION } from "~/env.server";
 import { resolveMisPrompt } from "./resolveMisPrompt";
 import { ProcessingMode } from "~/generated/client/enums";
 import { Lang } from "./const";
+import { clearMarkdownAroundJson, type LLMResult } from "./clearMarkdown";
 
 export async function extractText(
   openai: OpenAI,
   ...imageUrls: string[]
-): Promise<string> {
+): Promise<LLMResult> {
   const imageMessages = imageUrls.map(function (imageUrl) {
     return {
       type: "image_url",
@@ -35,5 +36,5 @@ export async function extractText(
     max_tokens: 30 * 1e3,
   });
 
-  return response.choices[0]?.message?.content || "";
+  return clearMarkdownAroundJson(response.choices[0]?.message?.content || "");
 }

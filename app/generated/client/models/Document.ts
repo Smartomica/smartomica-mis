@@ -56,6 +56,7 @@ export type DocumentMinAggregateOutputType = {
   tokensUsed: number | null
   processingTimeMs: number | null
   errorMessage: string | null
+  ocrComment: string | null
   retryCount: number | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -80,6 +81,7 @@ export type DocumentMaxAggregateOutputType = {
   tokensUsed: number | null
   processingTimeMs: number | null
   errorMessage: string | null
+  ocrComment: string | null
   retryCount: number | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -104,6 +106,7 @@ export type DocumentCountAggregateOutputType = {
   tokensUsed: number
   processingTimeMs: number
   errorMessage: number
+  ocrComment: number
   retryCount: number
   createdAt: number
   updatedAt: number
@@ -144,6 +147,7 @@ export type DocumentMinAggregateInputType = {
   tokensUsed?: true
   processingTimeMs?: true
   errorMessage?: true
+  ocrComment?: true
   retryCount?: true
   createdAt?: true
   updatedAt?: true
@@ -168,6 +172,7 @@ export type DocumentMaxAggregateInputType = {
   tokensUsed?: true
   processingTimeMs?: true
   errorMessage?: true
+  ocrComment?: true
   retryCount?: true
   createdAt?: true
   updatedAt?: true
@@ -192,6 +197,7 @@ export type DocumentCountAggregateInputType = {
   tokensUsed?: true
   processingTimeMs?: true
   errorMessage?: true
+  ocrComment?: true
   retryCount?: true
   createdAt?: true
   updatedAt?: true
@@ -303,6 +309,7 @@ export type DocumentGroupByOutputType = {
   tokensUsed: number | null
   processingTimeMs: number | null
   errorMessage: string | null
+  ocrComment: string | null
   retryCount: number
   createdAt: Date
   updatedAt: Date
@@ -350,6 +357,7 @@ export type DocumentWhereInput = {
   tokensUsed?: Prisma.IntNullableFilter<"Document"> | number | null
   processingTimeMs?: Prisma.IntNullableFilter<"Document"> | number | null
   errorMessage?: Prisma.StringNullableFilter<"Document"> | string | null
+  ocrComment?: Prisma.StringNullableFilter<"Document"> | string | null
   retryCount?: Prisma.IntFilter<"Document"> | number
   createdAt?: Prisma.DateTimeFilter<"Document"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Document"> | Date | string
@@ -377,6 +385,7 @@ export type DocumentOrderByWithRelationInput = {
   tokensUsed?: Prisma.SortOrderInput | Prisma.SortOrder
   processingTimeMs?: Prisma.SortOrderInput | Prisma.SortOrder
   errorMessage?: Prisma.SortOrderInput | Prisma.SortOrder
+  ocrComment?: Prisma.SortOrderInput | Prisma.SortOrder
   retryCount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -407,6 +416,7 @@ export type DocumentWhereUniqueInput = Prisma.AtLeast<{
   tokensUsed?: Prisma.IntNullableFilter<"Document"> | number | null
   processingTimeMs?: Prisma.IntNullableFilter<"Document"> | number | null
   errorMessage?: Prisma.StringNullableFilter<"Document"> | string | null
+  ocrComment?: Prisma.StringNullableFilter<"Document"> | string | null
   retryCount?: Prisma.IntFilter<"Document"> | number
   createdAt?: Prisma.DateTimeFilter<"Document"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Document"> | Date | string
@@ -434,6 +444,7 @@ export type DocumentOrderByWithAggregationInput = {
   tokensUsed?: Prisma.SortOrderInput | Prisma.SortOrder
   processingTimeMs?: Prisma.SortOrderInput | Prisma.SortOrder
   errorMessage?: Prisma.SortOrderInput | Prisma.SortOrder
+  ocrComment?: Prisma.SortOrderInput | Prisma.SortOrder
   retryCount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -466,6 +477,7 @@ export type DocumentScalarWhereWithAggregatesInput = {
   tokensUsed?: Prisma.IntNullableWithAggregatesFilter<"Document"> | number | null
   processingTimeMs?: Prisma.IntNullableWithAggregatesFilter<"Document"> | number | null
   errorMessage?: Prisma.StringNullableWithAggregatesFilter<"Document"> | string | null
+  ocrComment?: Prisma.StringNullableWithAggregatesFilter<"Document"> | string | null
   retryCount?: Prisma.IntWithAggregatesFilter<"Document"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Document"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Document"> | Date | string
@@ -490,6 +502,7 @@ export type DocumentCreateInput = {
   tokensUsed?: number | null
   processingTimeMs?: number | null
   errorMessage?: string | null
+  ocrComment?: string | null
   retryCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -515,6 +528,7 @@ export type DocumentUncheckedCreateInput = {
   tokensUsed?: number | null
   processingTimeMs?: number | null
   errorMessage?: string | null
+  ocrComment?: string | null
   retryCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -540,6 +554,7 @@ export type DocumentUpdateInput = {
   tokensUsed?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   processingTimeMs?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ocrComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   retryCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -565,6 +580,7 @@ export type DocumentUncheckedUpdateInput = {
   tokensUsed?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   processingTimeMs?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ocrComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   retryCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -590,6 +606,7 @@ export type DocumentCreateManyInput = {
   tokensUsed?: number | null
   processingTimeMs?: number | null
   errorMessage?: string | null
+  ocrComment?: string | null
   retryCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -614,6 +631,7 @@ export type DocumentUpdateManyMutationInput = {
   tokensUsed?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   processingTimeMs?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ocrComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   retryCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -636,6 +654,7 @@ export type DocumentUncheckedUpdateManyInput = {
   tokensUsed?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   processingTimeMs?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ocrComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   retryCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -670,6 +689,7 @@ export type DocumentCountOrderByAggregateInput = {
   tokensUsed?: Prisma.SortOrder
   processingTimeMs?: Prisma.SortOrder
   errorMessage?: Prisma.SortOrder
+  ocrComment?: Prisma.SortOrder
   retryCount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -701,6 +721,7 @@ export type DocumentMaxOrderByAggregateInput = {
   tokensUsed?: Prisma.SortOrder
   processingTimeMs?: Prisma.SortOrder
   errorMessage?: Prisma.SortOrder
+  ocrComment?: Prisma.SortOrder
   retryCount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -725,6 +746,7 @@ export type DocumentMinOrderByAggregateInput = {
   tokensUsed?: Prisma.SortOrder
   processingTimeMs?: Prisma.SortOrder
   errorMessage?: Prisma.SortOrder
+  ocrComment?: Prisma.SortOrder
   retryCount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -877,6 +899,7 @@ export type DocumentCreateWithoutUserInput = {
   tokensUsed?: number | null
   processingTimeMs?: number | null
   errorMessage?: string | null
+  ocrComment?: string | null
   retryCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -901,6 +924,7 @@ export type DocumentUncheckedCreateWithoutUserInput = {
   tokensUsed?: number | null
   processingTimeMs?: number | null
   errorMessage?: string | null
+  ocrComment?: string | null
   retryCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -954,6 +978,7 @@ export type DocumentScalarWhereInput = {
   tokensUsed?: Prisma.IntNullableFilter<"Document"> | number | null
   processingTimeMs?: Prisma.IntNullableFilter<"Document"> | number | null
   errorMessage?: Prisma.StringNullableFilter<"Document"> | string | null
+  ocrComment?: Prisma.StringNullableFilter<"Document"> | string | null
   retryCount?: Prisma.IntFilter<"Document"> | number
   createdAt?: Prisma.DateTimeFilter<"Document"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Document"> | Date | string
@@ -978,6 +1003,7 @@ export type DocumentCreateWithoutBatchInput = {
   tokensUsed?: number | null
   processingTimeMs?: number | null
   errorMessage?: string | null
+  ocrComment?: string | null
   retryCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1002,6 +1028,7 @@ export type DocumentUncheckedCreateWithoutBatchInput = {
   tokensUsed?: number | null
   processingTimeMs?: number | null
   errorMessage?: string | null
+  ocrComment?: string | null
   retryCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1052,6 +1079,7 @@ export type DocumentCreateWithoutJobsInput = {
   tokensUsed?: number | null
   processingTimeMs?: number | null
   errorMessage?: string | null
+  ocrComment?: string | null
   retryCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1076,6 +1104,7 @@ export type DocumentUncheckedCreateWithoutJobsInput = {
   tokensUsed?: number | null
   processingTimeMs?: number | null
   errorMessage?: string | null
+  ocrComment?: string | null
   retryCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1116,6 +1145,7 @@ export type DocumentUpdateWithoutJobsInput = {
   tokensUsed?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   processingTimeMs?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ocrComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   retryCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1140,6 +1170,7 @@ export type DocumentUncheckedUpdateWithoutJobsInput = {
   tokensUsed?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   processingTimeMs?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ocrComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   retryCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1164,6 +1195,7 @@ export type DocumentCreateManyUserInput = {
   tokensUsed?: number | null
   processingTimeMs?: number | null
   errorMessage?: string | null
+  ocrComment?: string | null
   retryCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1187,6 +1219,7 @@ export type DocumentUpdateWithoutUserInput = {
   tokensUsed?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   processingTimeMs?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ocrComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   retryCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1211,6 +1244,7 @@ export type DocumentUncheckedUpdateWithoutUserInput = {
   tokensUsed?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   processingTimeMs?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ocrComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   retryCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1235,6 +1269,7 @@ export type DocumentUncheckedUpdateManyWithoutUserInput = {
   tokensUsed?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   processingTimeMs?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ocrComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   retryCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1258,6 +1293,7 @@ export type DocumentCreateManyBatchInput = {
   tokensUsed?: number | null
   processingTimeMs?: number | null
   errorMessage?: string | null
+  ocrComment?: string | null
   retryCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1281,6 +1317,7 @@ export type DocumentUpdateWithoutBatchInput = {
   tokensUsed?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   processingTimeMs?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ocrComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   retryCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1305,6 +1342,7 @@ export type DocumentUncheckedUpdateWithoutBatchInput = {
   tokensUsed?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   processingTimeMs?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ocrComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   retryCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1329,6 +1367,7 @@ export type DocumentUncheckedUpdateManyWithoutBatchInput = {
   tokensUsed?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   processingTimeMs?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  ocrComment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   retryCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1383,6 +1422,7 @@ export type DocumentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   tokensUsed?: boolean
   processingTimeMs?: boolean
   errorMessage?: boolean
+  ocrComment?: boolean
   retryCount?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1411,6 +1451,7 @@ export type DocumentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   tokensUsed?: boolean
   processingTimeMs?: boolean
   errorMessage?: boolean
+  ocrComment?: boolean
   retryCount?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1437,6 +1478,7 @@ export type DocumentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   tokensUsed?: boolean
   processingTimeMs?: boolean
   errorMessage?: boolean
+  ocrComment?: boolean
   retryCount?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1463,6 +1505,7 @@ export type DocumentSelectScalar = {
   tokensUsed?: boolean
   processingTimeMs?: boolean
   errorMessage?: boolean
+  ocrComment?: boolean
   retryCount?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -1471,7 +1514,7 @@ export type DocumentSelectScalar = {
   batchId?: boolean
 }
 
-export type DocumentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "filename" | "originalName" | "mimeType" | "fileSize" | "status" | "mode" | "sourceLanguage" | "targetLanguage" | "filePath" | "extractedText" | "translatedText" | "tokensUsed" | "processingTimeMs" | "errorMessage" | "retryCount" | "createdAt" | "updatedAt" | "completedAt" | "userId" | "batchId", ExtArgs["result"]["document"]>
+export type DocumentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "filename" | "originalName" | "mimeType" | "fileSize" | "status" | "mode" | "sourceLanguage" | "targetLanguage" | "filePath" | "extractedText" | "translatedText" | "tokensUsed" | "processingTimeMs" | "errorMessage" | "ocrComment" | "retryCount" | "createdAt" | "updatedAt" | "completedAt" | "userId" | "batchId", ExtArgs["result"]["document"]>
 export type DocumentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   jobs?: boolean | Prisma.Document$jobsArgs<ExtArgs>
@@ -1510,6 +1553,7 @@ export type $DocumentPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     tokensUsed: number | null
     processingTimeMs: number | null
     errorMessage: string | null
+    ocrComment: string | null
     retryCount: number
     createdAt: Date
     updatedAt: Date
@@ -1957,6 +2001,7 @@ export interface DocumentFieldRefs {
   readonly tokensUsed: Prisma.FieldRef<"Document", 'Int'>
   readonly processingTimeMs: Prisma.FieldRef<"Document", 'Int'>
   readonly errorMessage: Prisma.FieldRef<"Document", 'String'>
+  readonly ocrComment: Prisma.FieldRef<"Document", 'String'>
   readonly retryCount: Prisma.FieldRef<"Document", 'Int'>
   readonly createdAt: Prisma.FieldRef<"Document", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Document", 'DateTime'>

@@ -851,6 +851,7 @@ export const DocumentScalarFieldEnum = {
   tokensUsed: 'tokensUsed',
   processingTimeMs: 'processingTimeMs',
   errorMessage: 'errorMessage',
+  ocrComment: 'ocrComment',
   retryCount: 'retryCount',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',

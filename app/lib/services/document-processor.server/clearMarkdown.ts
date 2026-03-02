@@ -1,11 +1,23 @@
-export function clearMarkdownAroundJson(extractedTextString: string): string {
-  let extractedText = extractedTextString,
-    llmError,
-    llmComment;
-  try {
-    extractedText = JSON.parse(extractedTextString).text;
-  } catch {}
+import z from "zod";
 
+const llmSchema = z.object({
+  error: z.string().optional().nullable(),
+  comment: z.string().optional().nullable(),
+  lng: z.string().optional().nullable(),
+
+  text: z.string().transform(function (val) {
+    return val.replaceAll("\n", "");
+  }),
+});
+
+export type LLMResult = z.infer<typeof llmSchema>;
+
+export function clearMarkdownAroundJson(
+  extractedTextString: string,
+): LLMResult {
+  let extractedObject;
+
+  // Fixes json in markdown code blocks
   try {
     const regexExtracted = new RegExp("^```(json|JSON)(.*)```$", "s")
       .exec(extractedTextString)
@@ -14,19 +26,29 @@ export function clearMarkdownAroundJson(extractedTextString: string): string {
 
     if (!regexExtracted) throw new Error("No JSON found after regex cleansing");
 
-    const extractedObject = JSON.parse(regexExtracted);
+    extractedObject = llmSchema.parse(JSON.parse(regexExtracted));
 
-    // It should be HTML inside
-    extractedText = extractedObject.text.replaceAll("\n", "");
-    llmError = extractedObject.error;
-    llmComment = extractedObject.comment;
+    return extractedObject;
   } catch (error) {
     console.log(error);
   }
 
-  if (llmError) {
-    throw new Error(llmError);
+  // Fixes plain json without code blocks
+  try {
+    extractedObject = llmSchema.parse(JSON.parse(extractedTextString));
+    return extractedObject;
+  } catch (error) {
+    console.log(error);
   }
 
-  return extractedText;
+  if (extractedObject?.error) {
+    throw new Error(extractedObject.error);
+  }
+
+  return {
+    text: extractedTextString,
+    error: null,
+    comment: null,
+    lng: null,
+  };
 }
