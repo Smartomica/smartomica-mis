@@ -65,11 +65,7 @@ export async function resolveMisPrompt(
         getChatName(Tag.OperationOcr),
       );
 
-      return combinePrompts(
-        languageSetting,
-        ocrChatPrompt,
-        glossaryTargetTextPrompt,
-      );
+      return combinePrompts(languageSetting, ocrChatPrompt);
 
     case ProcessingMode.SUMMARISE:
       const summariseChatPrompt = await getPrompt(
@@ -81,6 +77,8 @@ export async function resolveMisPrompt(
         languageSetting,
         summariseChatPrompt,
         glossaryTargetTextPrompt,
+        translationFromTextPrompt,
+        translationToTextPrompt,
       );
 
     case ProcessingMode.SUMMARISE_ONCO:
@@ -93,27 +91,15 @@ export async function resolveMisPrompt(
         languageSetting,
         summariseOncoChatPrompt,
         glossaryTargetTextPrompt,
+        translationFromTextPrompt,
+        translationToTextPrompt,
       );
 
     case ProcessingMode.TRANSLATE:
     case ProcessingMode.TRANSLATE_JUR:
-      const langPairChatPromptName =
-        misPrompts.data
-          .filter(
-            (p) =>
-              p.type === PromptType.Chat &&
-              p.tags.includes(Tag.TranslateLegacy) &&
-              // Require name to include smth like ru->en
-              p.name.indexOf(sourceLang) < p.name.indexOf(targetLang) &&
-              p.tags.includes(sourceLang) &&
-              p.tags.includes(targetLang),
-          )
-          .at(0)?.name ||
-        getChatName(Tag.TranslateLegacy, Tag.FromAny, targetLang);
-
       const langPairChatPrompt = await getPrompt(
         PromptType.Chat,
-        langPairChatPromptName,
+        getChatName(Tag.TranslateLang),
       );
 
       return combinePrompts(
@@ -121,6 +107,8 @@ export async function resolveMisPrompt(
         langPairChatPrompt,
         glossarySourceTextPrompt,
         glossaryTargetTextPrompt,
+        translationFromTextPrompt,
+        translationToTextPrompt,
       );
     default:
       throw new NeverError(processingMode);
