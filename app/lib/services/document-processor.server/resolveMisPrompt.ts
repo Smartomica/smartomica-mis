@@ -26,17 +26,27 @@ enum Tag {
 }
 
 type LookupTag = Tag | Lang;
+interface LanguageSetting {
+  sourceLang: Lang;
+  targetLang: Lang;
+  detectedLangs: Lang[];
+}
 
 export async function resolveMisPrompt(
   processingMode: ProcessingMode,
   sourceLang: Lang,
   targetLang: Lang,
+  detectedLangs: Lang[] = [],
 ): Promise<SimplifiedChatMessage[]> {
-  const languageSetting = [sourceLang, targetLang] as const;
   const misPrompts = await listPrompts({
     tag: Tag.ProjectMis,
     limit: 100,
   });
+  const languageSetting = {
+    sourceLang,
+    targetLang,
+    detectedLangs,
+  } satisfies LanguageSetting;
 
   const [
     glossarySourceTextPrompt,
@@ -156,7 +166,7 @@ export async function resolveMisPrompt(
 }
 
 function combinePrompts(
-  [from, to]: readonly [Lang, Lang],
+  { sourceLang, targetLang, detectedLangs }: LanguageSetting,
   chat: ChatPromptClient | null,
   ...texts: (TextPromptClient | null)[]
 ): SimplifiedChatMessage[] {
@@ -164,10 +174,9 @@ function combinePrompts(
     throw new Error("Chat prompt is required as it is the primary prompt");
 
   const combinedPrompt = compileChatPrompt(chat, {
-    sourceLang:
-      SUPPORTED_LANGUAGES.find((lang) => lang.code === from)?.name || from,
-    targetLang:
-      SUPPORTED_LANGUAGES.find((lang) => lang.code === to)?.name || to,
+    sourceLang: replaceCodeWithName(sourceLang),
+    targetLang: replaceCodeWithName(targetLang),
+    detectedLangs: detectedLangs.map(replaceCodeWithName).join("|"),
   });
 
   const combinedTextPrompts = texts.filter(Boolean).map(
@@ -179,6 +188,13 @@ function combinePrompts(
   );
 
   return [...combinedPrompt, ...combinedTextPrompts];
+}
+
+function replaceCodeWithName(lang: Lang) {
+  return (
+    SUPPORTED_LANGUAGES.find((validLang) => validLang.code === lang)?.name ||
+    lang
+  );
 }
 
 function getPrompt(

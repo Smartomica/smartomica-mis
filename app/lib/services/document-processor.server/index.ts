@@ -24,7 +24,7 @@ import {
 } from "./const";
 import { resolveMisPrompt } from "./resolveMisPrompt";
 import { estimateTokensNeeded, estimateTokensUsed } from "./tokens";
-import { clearMarkdownAroundJson } from "./clearMarkdown";
+import { clearMarkdownAroundJson, type LLMResult } from "./clearMarkdown";
 import { extractText } from "./extractTextWihLLM";
 import { saveDocumentOcrMeta } from "../document.server";
 
@@ -155,7 +155,7 @@ async function processBatchAsync(
 
     // Determine basic info from the first document (assuming all are same for the batch request)
     const firstDoc = documents[0];
-    const sourceLanguage = firstDoc.sourceLanguage;
+    const sourceLanguageFromUi = firstDoc.sourceLanguage;
     const targetLanguage = firstDoc.targetLanguage;
     const mode = firstDoc.mode;
 
@@ -166,7 +166,7 @@ async function processBatchAsync(
         status: "RUNNING",
         batchId,
         inputData: {
-          sourceLanguage,
+          sourceLanguage: sourceLanguageFromUi,
           targetLanguage,
           mode,
           documentIds: documents.map((d) => d.id),
@@ -185,7 +185,7 @@ async function processBatchAsync(
         input: {
           files: documents.map((d) => d.originalName),
           totalSize: documents.reduce((acc, d) => acc + d.fileSize, 0),
-          sourceLanguage,
+          sourceLanguage: sourceLanguageFromUi,
           targetLanguage,
           mode,
         },
@@ -199,13 +199,13 @@ async function processBatchAsync(
       // 1. Extract text from ALL documents (parallel)
       const extractionResults = await Promise.all(
         documents.map(async (doc) => {
-          const text = await extractTextFromDocument(doc, sessionId);
+          const visionResult = await extractTextFromDocument(doc, sessionId);
           // Update individual document with extracted text
           await prisma.document.update({
             where: { id: doc.id },
-            data: { extractedText: text },
+            data: { extractedText: visionResult.text },
           });
-          return { doc, text };
+          return { doc, ...visionResult };
         }),
       );
 
@@ -215,15 +215,21 @@ async function processBatchAsync(
 
       const combinedExtractedText = sortedExtractionResults
         .map(
-          ({ doc, text }) => `--- Document: ${doc.originalName} ---\n${text}`,
+          ({ doc, text, comment, lng }) =>
+            `--- Document: ${doc.originalName} (OCR comment: ${comment || ""}) (OCR language: ${lng})---\n${text}`,
         )
         .join("\n");
+
+      const detectedLanguages = extractionResults
+        .map(({ ...vis }) => vis.lng as Lang)
+        .filter((lang) => Object.values(Lang).includes(lang));
 
       // 2. Resolve Prompt
       const prompt = await resolveMisPrompt(
         mode,
-        sourceLanguage as Lang,
+        sourceLanguageFromUi as Lang,
         targetLanguage as Lang,
+        detectedLanguages,
       );
 
       const messages = [
@@ -384,7 +390,7 @@ export async function processDocumentAsync(documentId: string): Promise<void> {
 async function extractTextFromDocument(
   document: Document,
   sessionId: string,
-): Promise<string> {
+): Promise<LLMResult> {
   const openAi = getOpenAI({
     sessionId,
     generationName: "mis-document-text-extraction",
@@ -403,7 +409,7 @@ async function extractTextFromDocument(
 
       if (directText && directText.trim().length > 50) {
         console.log("Successfully extracted text directly from PDF");
-        return directText;
+        return textToOcrResult(directText);
       }
 
       // Create a unique directory for this document's pages to avoid collisions in parallel processing
@@ -420,7 +426,7 @@ async function extractTextFromDocument(
         );
         if (Number.isFinite(confidence) && Number(confidence) > 90) {
           console.log("Successfully extracted text from PDF");
-          return extractedText;
+          return textToOcrResult(extractedText);
         }
         throw new Error("Failed to extract text from PDF via OCR");
       }
@@ -439,7 +445,7 @@ async function extractTextFromDocument(
       const extractedData = await extractText(openAi, ...imageUrls);
       await saveDocumentOcrMeta(document, extractedData);
 
-      return extractedData.text;
+      return extractedData;
     } else if (
       document.mimeType ===
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -463,7 +469,7 @@ async function extractTextFromDocument(
         if (result.messages.length > 0) {
           console.log("Mammoth messages:", result.messages);
         }
-        return result.value;
+        return textToOcrResult(result.value);
       } catch (error) {
         console.error("Mammoth extraction failed:", error);
         throw new Error(
@@ -487,7 +493,7 @@ async function extractTextFromDocument(
       console.log(sections);
 
       const serializaed = `Header: ${sections.headers} \n Body: ${sections.body} \n Footer: ${sections.footers} \n TextBoxes: ${sections.textBoxes} \n EndNotes: ${sections.endNotes}`;
-      return serializaed;
+      return textToOcrResult(serializaed);
     } else if (isRequiresOCR(document.mimeType)) {
       if (LOCAL_MODE) {
         console.log("Using OCR for image...");
@@ -495,7 +501,7 @@ async function extractTextFromDocument(
         const { extractedText, confidence } = await ocrTextFromImage(fileUrl);
 
         if (Number.isFinite(confidence) && Number(confidence) > 80)
-          return extractedText;
+          return textToOcrResult(extractedText);
         else console.log(`OCR confidence too low: ${confidence}%`);
       }
 
@@ -506,7 +512,7 @@ async function extractTextFromDocument(
       const extractedData = await extractText(openAi, fileUrl);
       await saveDocumentOcrMeta(document, extractedData);
 
-      return extractedData.text;
+      return extractedData;
     } else {
       // For text-based files or unsupported formats
       const fileUrl = await getFileUrl(document.filePath);
@@ -522,7 +528,7 @@ async function extractTextFromDocument(
         const text = await response.text();
         console.log(`Successfully read ${text.length} characters as text`);
 
-        return text;
+        return textToOcrResult(text);
       } catch (error) {
         console.error("Failed to read file as text:", error);
         throw new Error(`Unsupported file type: ${document.mimeType}`);
@@ -539,6 +545,16 @@ async function extractTextFromDocument(
       `Text extraction failed for ${document.originalName}: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
   }
+}
+
+function textToOcrResult(text: string): LLMResult {
+  // @todo: real inference without ocr tbd
+  return {
+    text,
+    lng: Lang.Auto,
+    comment: "",
+    error: "",
+  };
 }
 
 function mapModeToJobType(mode: ProcessingMode) {
