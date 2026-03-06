@@ -2,6 +2,7 @@ import type { Route } from "./+types/export";
 import { requireUser } from "~/lib/auth/session.server";
 import { prisma } from "~/lib/db/client";
 import { generateDocx } from "~/lib/services/document-generator.server";
+import { Lang } from "~/lib/services/document-processor.server/const";
 import { downloadFile, uploadFile } from "~/lib/storage/minio.server";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
@@ -47,7 +48,17 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   } catch (error) {
     // File doesn't exist in cache, generate it
     try {
-      const docxBuffer = await generateDocx(document.translatedText);
+      const direction = [Lang.AR, Lang.HE].includes(
+        document.targetLanguage as Lang,
+      )
+        ? "rtl"
+        : "ltr";
+
+      const docxBuffer = await generateDocx(
+        document.translatedText,
+        (document.targetLanguage as Lang) || Lang.EN,
+        direction,
+      );
 
       // Save to cache
       await uploadFile(exportPath, docxBuffer, docxBuffer.length, {

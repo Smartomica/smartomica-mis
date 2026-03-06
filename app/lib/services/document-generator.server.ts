@@ -1,11 +1,16 @@
 import HtmlToDocx from "@turbodocx/html-to-docx";
+import type { Lang } from "./document-processor.server/const";
 
-export async function generateDocx(htmlContent: string): Promise<Buffer> {
+export async function generateDocx(
+  htmlContent: string,
+  lang: Lang,
+  dir: "rtl" | "ltr",
+): Promise<Buffer> {
   // Trim content to avoid leading whitespace issues
   const cleanContent = htmlContent.trim();
 
   const fullHtml = `<!DOCTYPE html>
-<html lang="en">
+<html lang="${lang}">
 <head>
 <meta charset="UTF-8" />
 <title>Document</title>
@@ -17,7 +22,12 @@ ${cleanContent}
 
   const buffer = await HtmlToDocx(fullHtml, null, {
     font: "Colibri",
-    table: { row: { cantSplit: true } },
+    direction: dir,
+    lang,
+    table: {
+      row: { cantSplit: true },
+      borderOptions: { size: 1, color: "black" },
+    },
     footer: true,
     pageNumber: true,
     // Set standard margins (1440 twips = 1 inch) to ensure consistent layout
