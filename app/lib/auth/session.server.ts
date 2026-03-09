@@ -1,7 +1,7 @@
 import { createCookieSessionStorage, redirect } from "react-router";
 import { SESSION_SECRET } from "~/env.server";
 import { prisma } from "~/lib/db/client";
-import { ADMIN_EMAIL, CLEVEL_EMAIL, DEMO_EMAIL } from "~/lib/db/seed";
+import { ADMIN_EMAIL, CLEVEL_EMAIL, DEMO_EMAIL, ELENA_Z } from "~/lib/db/seed";
 
 export interface User {
   id: string;
@@ -18,6 +18,7 @@ const DEMO_PASSWORDS = {
   [ADMIN_EMAIL]: "zTX6iJsgo86w4HMWRjHu@u!U", // Do not worry, it is unique
   [DEMO_EMAIL]: "demo123demo123",
   [CLEVEL_EMAIL]: "demo123demo123",
+  [ELENA_Z]: "EQ!kpQFzKXK8Dv4FzAso7hMd",
 };
 
 export const sessionStorage = createCookieSessionStorage({

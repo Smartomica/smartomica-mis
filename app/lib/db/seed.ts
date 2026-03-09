@@ -6,6 +6,7 @@ import type { UserRole } from "~/generated/client/client.js";
 export const ADMIN_EMAIL = "boris.valdman@smartomica.com";
 export const DEMO_EMAIL = "demo@smartomica.com";
 export const CLEVEL_EMAIL = "clevel@smartomica.com";
+export const ELENA_Z = "elena.zelentsova@smartomica.com";
 
 export async function seedDatabase() {
   console.log("DB url:", DATABASE_URL);
