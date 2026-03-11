@@ -9,8 +9,9 @@ import {
 
 import type { Route } from "./+types/root";
 import { getUser } from "~/lib/auth/session.server";
-import { ensureDB } from "./lib/db/ensureDb";
+import { ensureDB } from "~/lib/db/ensureDb";
 import { MINIO_ENDPOINT, NODE_ENV } from "~/env.server";
+import { PWAManifest } from "~/components/pwa";
 import "./app.css";
 
 export const meta: Route.MetaFunction = () => {
@@ -88,6 +89,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
+        <PWAManifest />
         <Links />
       </head>
       <body className="font-sans bg-gray-50 dark:bg-gray-950 min-h-screen max-w-none">
