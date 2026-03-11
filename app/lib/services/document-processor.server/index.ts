@@ -64,7 +64,7 @@ export async function processDocument({
     if (user.tokensRemaining < estimatedTokens) {
       return {
         success: false,
-        error: `Insufficient tokens. Need ${estimatedTokens}, have ${user.tokensRemaining}`,
+        error: `Insufficient tokens. Need ${estimatedTokens.toFixed(0)}, have ${user.tokensRemaining}`,
       };
     }
 

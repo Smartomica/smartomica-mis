@@ -6,6 +6,7 @@ import {
   useFetcher,
   useLoaderData,
   useNavigate,
+  useRouteError,
 } from "react-router";
 import type { Route } from "./+types/upload";
 import { requireUser } from "~/lib/auth/session.server";
@@ -18,6 +19,7 @@ import { ProcessingMode } from "~/generated/client/enums";
 import type { FormUploadFile } from "~/hooks/useFormUpload";
 import { UpdateIcon } from "@radix-ui/react-icons";
 import { Lang } from "~/lib/services/document-processor.server/const";
+import { toast } from "sonner";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await requireUser(request);
@@ -154,9 +156,10 @@ export default function DocumentUpload() {
     const result = uploadFetcher.data;
     if (!result) return;
 
-    if (result.error) {
-      console.error(result.error);
-    }
+    if (!result.error) return;
+
+    toast.error(result.error);
+    setSubmitPressed(false);
   }, [uploadFetcher.data]);
 
   return (
