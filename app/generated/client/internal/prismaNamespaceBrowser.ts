@@ -125,6 +125,8 @@ export const DocumentBatchScalarFieldEnum = {
   status: 'status',
   mode: 'mode',
   combinedResult: 'combinedResult',
+  errorMessage: 'errorMessage',
+  comment: 'comment',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

@@ -5,9 +5,9 @@ import { Layout } from "~/components/Layout";
 import { TranslateButton } from "~/components/TranslateButton";
 import { t } from "~/lib/i18n/i18n";
 import type { TranslationJob } from "~/types/document";
-import { DocumentStatus } from "~/generated/client/enums";
+import { DocumentStatus, JobStatus } from "~/generated/client/enums";
 import { prisma } from "~/lib/db/client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { getOriginalDocumentPreviewUrl } from "~/lib/services/document.server";
 import {
   PlusIcon,
@@ -27,6 +27,7 @@ import {
 type DisplayItem = TranslationJob & {
   isBatch: boolean;
   batchId?: string;
+  comment?: string;
   documentCount: number;
   documents?: { id: string; name: string; status: DocumentStatus }[];
 };
@@ -114,6 +115,9 @@ export async function loader({ request }: Route.LoaderArgs) {
     const representative = docs[0];
     const batch = representative.batch;
 
+    const batchError = batch?.errorMessage;
+    const batchComment = batch?.comment;
+
     // If a batch has only 1 document, treat it as a single file
     if (docs.length === 1) {
       const doc = docs[0];
@@ -122,6 +126,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       let status = doc.status;
       let error = doc.errorMessage;
       const batchJob = doc.batch?.jobs?.[0];
+      const comment = doc.ocrComment || undefined;
       if (doc.batch && batchJob && batchJob.status === "FAILED") {
         status = DocumentStatus.FAILED;
         error = batchJob.errorMessage || error || "Batch processing failed";
@@ -152,20 +157,21 @@ export async function loader({ request }: Route.LoaderArgs) {
         createdAt: doc.createdAt.toISOString(),
         updatedAt: doc.updatedAt.toISOString(),
         progress: calculateProgress(status),
-        error: error || "Unknown error",
+        error: batchError || error || "Unknown error",
+        comment,
         tokensUsed: doc.tokensUsed || undefined,
       });
       continue;
     }
 
-    let batchStatus = batch?.status || DocumentStatus.PENDING;
-    let batchError = "";
+    const comment = batch?.comment || undefined;
+    const firstBatchJobStatus = batch?.jobs?.at(0)?.status;
+    const batchJobError = firstBatchJobStatus || batchError;
+    const batchStatus =
+      batch?.status || firstBatchJobStatus || DocumentStatus.PENDING;
 
-    const batchJob = batch?.jobs?.[0];
-    if (batchJob && batchJob.status === "FAILED") {
-      batchStatus = DocumentStatus.FAILED;
-      batchError = batchJob.errorMessage || "Batch processing failed";
-    }
+    const error = batchJobError || batchComment || undefined;
+    const status = batch?.status || DocumentStatus.PROCESSING;
 
     displayItems.push({
       id: representative.id, // Link to the first document as entry point
@@ -189,7 +195,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       sourceLanguage: representative.sourceLanguage,
       targetLanguage: representative.targetLanguage || "",
       mode: representative.mode,
-      status: batchStatus,
+      status,
       result: undefined, // Batches might not have a single result text
       createdAt:
         batch?.createdAt.toISOString() ||
@@ -198,7 +204,8 @@ export async function loader({ request }: Route.LoaderArgs) {
         batch?.updatedAt.toISOString() ||
         representative.updatedAt.toISOString(),
       progress: calculateProgress(batchStatus),
-      error: batchError,
+      error,
+      comment,
       tokensUsed: docs.reduce((sum, d) => sum + (d.tokensUsed || 0), 0),
     });
   }
@@ -240,7 +247,7 @@ export default function Documents() {
 
   const prevProcessingCount = useRef(processingCount);
 
-  const getStatusBadge = (status: string) => {
+  function getStatusBadge(status: string) {
     switch (status) {
       case DocumentStatus.COMPLETED:
         return "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300";
@@ -253,7 +260,7 @@ export default function Documents() {
       default:
         return "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300";
     }
-  };
+  }
 
   useEffect(() => {
     requestNotificationPermission();
@@ -407,11 +414,14 @@ export default function Documents() {
                           {t("documents.table.createdAt")}
                         </p>
                         <p className="font-medium text-gray-900 dark:text-gray-100">
-                          {new Date(item.createdAt).toLocaleDateString("en-GB", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })}
+                          {new Date(item.createdAt).toLocaleDateString(
+                            "en-GB",
+                            {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            },
+                          )}
                         </p>
                       </div>
                     </div>

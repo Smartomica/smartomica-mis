@@ -29,6 +29,8 @@ export type DocumentBatchMinAggregateOutputType = {
   status: $Enums.DocumentStatus | null
   mode: $Enums.ProcessingMode | null
   combinedResult: string | null
+  errorMessage: string | null
+  comment: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -38,6 +40,8 @@ export type DocumentBatchMaxAggregateOutputType = {
   status: $Enums.DocumentStatus | null
   mode: $Enums.ProcessingMode | null
   combinedResult: string | null
+  errorMessage: string | null
+  comment: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -47,6 +51,8 @@ export type DocumentBatchCountAggregateOutputType = {
   status: number
   mode: number
   combinedResult: number
+  errorMessage: number
+  comment: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -58,6 +64,8 @@ export type DocumentBatchMinAggregateInputType = {
   status?: true
   mode?: true
   combinedResult?: true
+  errorMessage?: true
+  comment?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -67,6 +75,8 @@ export type DocumentBatchMaxAggregateInputType = {
   status?: true
   mode?: true
   combinedResult?: true
+  errorMessage?: true
+  comment?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -76,6 +86,8 @@ export type DocumentBatchCountAggregateInputType = {
   status?: true
   mode?: true
   combinedResult?: true
+  errorMessage?: true
+  comment?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -158,6 +170,8 @@ export type DocumentBatchGroupByOutputType = {
   status: $Enums.DocumentStatus
   mode: $Enums.ProcessingMode
   combinedResult: string | null
+  errorMessage: string | null
+  comment: string | null
   createdAt: Date
   updatedAt: Date
   _count: DocumentBatchCountAggregateOutputType | null
@@ -188,6 +202,8 @@ export type DocumentBatchWhereInput = {
   status?: Prisma.EnumDocumentStatusFilter<"DocumentBatch"> | $Enums.DocumentStatus
   mode?: Prisma.EnumProcessingModeFilter<"DocumentBatch"> | $Enums.ProcessingMode
   combinedResult?: Prisma.StringNullableFilter<"DocumentBatch"> | string | null
+  errorMessage?: Prisma.StringNullableFilter<"DocumentBatch"> | string | null
+  comment?: Prisma.StringNullableFilter<"DocumentBatch"> | string | null
   createdAt?: Prisma.DateTimeFilter<"DocumentBatch"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"DocumentBatch"> | Date | string
   documents?: Prisma.DocumentListRelationFilter
@@ -199,6 +215,8 @@ export type DocumentBatchOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   mode?: Prisma.SortOrder
   combinedResult?: Prisma.SortOrderInput | Prisma.SortOrder
+  errorMessage?: Prisma.SortOrderInput | Prisma.SortOrder
+  comment?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   documents?: Prisma.DocumentOrderByRelationAggregateInput
@@ -213,6 +231,8 @@ export type DocumentBatchWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.EnumDocumentStatusFilter<"DocumentBatch"> | $Enums.DocumentStatus
   mode?: Prisma.EnumProcessingModeFilter<"DocumentBatch"> | $Enums.ProcessingMode
   combinedResult?: Prisma.StringNullableFilter<"DocumentBatch"> | string | null
+  errorMessage?: Prisma.StringNullableFilter<"DocumentBatch"> | string | null
+  comment?: Prisma.StringNullableFilter<"DocumentBatch"> | string | null
   createdAt?: Prisma.DateTimeFilter<"DocumentBatch"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"DocumentBatch"> | Date | string
   documents?: Prisma.DocumentListRelationFilter
@@ -224,6 +244,8 @@ export type DocumentBatchOrderByWithAggregationInput = {
   status?: Prisma.SortOrder
   mode?: Prisma.SortOrder
   combinedResult?: Prisma.SortOrderInput | Prisma.SortOrder
+  errorMessage?: Prisma.SortOrderInput | Prisma.SortOrder
+  comment?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.DocumentBatchCountOrderByAggregateInput
@@ -239,6 +261,8 @@ export type DocumentBatchScalarWhereWithAggregatesInput = {
   status?: Prisma.EnumDocumentStatusWithAggregatesFilter<"DocumentBatch"> | $Enums.DocumentStatus
   mode?: Prisma.EnumProcessingModeWithAggregatesFilter<"DocumentBatch"> | $Enums.ProcessingMode
   combinedResult?: Prisma.StringNullableWithAggregatesFilter<"DocumentBatch"> | string | null
+  errorMessage?: Prisma.StringNullableWithAggregatesFilter<"DocumentBatch"> | string | null
+  comment?: Prisma.StringNullableWithAggregatesFilter<"DocumentBatch"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"DocumentBatch"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"DocumentBatch"> | Date | string
 }
@@ -248,6 +272,8 @@ export type DocumentBatchCreateInput = {
   status?: $Enums.DocumentStatus
   mode: $Enums.ProcessingMode
   combinedResult?: string | null
+  errorMessage?: string | null
+  comment?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   documents?: Prisma.DocumentCreateNestedManyWithoutBatchInput
@@ -259,6 +285,8 @@ export type DocumentBatchUncheckedCreateInput = {
   status?: $Enums.DocumentStatus
   mode: $Enums.ProcessingMode
   combinedResult?: string | null
+  errorMessage?: string | null
+  comment?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   documents?: Prisma.DocumentUncheckedCreateNestedManyWithoutBatchInput
@@ -270,6 +298,8 @@ export type DocumentBatchUpdateInput = {
   status?: Prisma.EnumDocumentStatusFieldUpdateOperationsInput | $Enums.DocumentStatus
   mode?: Prisma.EnumProcessingModeFieldUpdateOperationsInput | $Enums.ProcessingMode
   combinedResult?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   documents?: Prisma.DocumentUpdateManyWithoutBatchNestedInput
@@ -281,6 +311,8 @@ export type DocumentBatchUncheckedUpdateInput = {
   status?: Prisma.EnumDocumentStatusFieldUpdateOperationsInput | $Enums.DocumentStatus
   mode?: Prisma.EnumProcessingModeFieldUpdateOperationsInput | $Enums.ProcessingMode
   combinedResult?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   documents?: Prisma.DocumentUncheckedUpdateManyWithoutBatchNestedInput
@@ -292,6 +324,8 @@ export type DocumentBatchCreateManyInput = {
   status?: $Enums.DocumentStatus
   mode: $Enums.ProcessingMode
   combinedResult?: string | null
+  errorMessage?: string | null
+  comment?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -301,6 +335,8 @@ export type DocumentBatchUpdateManyMutationInput = {
   status?: Prisma.EnumDocumentStatusFieldUpdateOperationsInput | $Enums.DocumentStatus
   mode?: Prisma.EnumProcessingModeFieldUpdateOperationsInput | $Enums.ProcessingMode
   combinedResult?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -310,6 +346,8 @@ export type DocumentBatchUncheckedUpdateManyInput = {
   status?: Prisma.EnumDocumentStatusFieldUpdateOperationsInput | $Enums.DocumentStatus
   mode?: Prisma.EnumProcessingModeFieldUpdateOperationsInput | $Enums.ProcessingMode
   combinedResult?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -324,6 +362,8 @@ export type DocumentBatchCountOrderByAggregateInput = {
   status?: Prisma.SortOrder
   mode?: Prisma.SortOrder
   combinedResult?: Prisma.SortOrder
+  errorMessage?: Prisma.SortOrder
+  comment?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -333,6 +373,8 @@ export type DocumentBatchMaxOrderByAggregateInput = {
   status?: Prisma.SortOrder
   mode?: Prisma.SortOrder
   combinedResult?: Prisma.SortOrder
+  errorMessage?: Prisma.SortOrder
+  comment?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -342,6 +384,8 @@ export type DocumentBatchMinOrderByAggregateInput = {
   status?: Prisma.SortOrder
   mode?: Prisma.SortOrder
   combinedResult?: Prisma.SortOrder
+  errorMessage?: Prisma.SortOrder
+  comment?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -383,6 +427,8 @@ export type DocumentBatchCreateWithoutDocumentsInput = {
   status?: $Enums.DocumentStatus
   mode: $Enums.ProcessingMode
   combinedResult?: string | null
+  errorMessage?: string | null
+  comment?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   jobs?: Prisma.ProcessingJobCreateNestedManyWithoutBatchInput
@@ -393,6 +439,8 @@ export type DocumentBatchUncheckedCreateWithoutDocumentsInput = {
   status?: $Enums.DocumentStatus
   mode: $Enums.ProcessingMode
   combinedResult?: string | null
+  errorMessage?: string | null
+  comment?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   jobs?: Prisma.ProcessingJobUncheckedCreateNestedManyWithoutBatchInput
@@ -419,6 +467,8 @@ export type DocumentBatchUpdateWithoutDocumentsInput = {
   status?: Prisma.EnumDocumentStatusFieldUpdateOperationsInput | $Enums.DocumentStatus
   mode?: Prisma.EnumProcessingModeFieldUpdateOperationsInput | $Enums.ProcessingMode
   combinedResult?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   jobs?: Prisma.ProcessingJobUpdateManyWithoutBatchNestedInput
@@ -429,6 +479,8 @@ export type DocumentBatchUncheckedUpdateWithoutDocumentsInput = {
   status?: Prisma.EnumDocumentStatusFieldUpdateOperationsInput | $Enums.DocumentStatus
   mode?: Prisma.EnumProcessingModeFieldUpdateOperationsInput | $Enums.ProcessingMode
   combinedResult?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   jobs?: Prisma.ProcessingJobUncheckedUpdateManyWithoutBatchNestedInput
@@ -439,6 +491,8 @@ export type DocumentBatchCreateWithoutJobsInput = {
   status?: $Enums.DocumentStatus
   mode: $Enums.ProcessingMode
   combinedResult?: string | null
+  errorMessage?: string | null
+  comment?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   documents?: Prisma.DocumentCreateNestedManyWithoutBatchInput
@@ -449,6 +503,8 @@ export type DocumentBatchUncheckedCreateWithoutJobsInput = {
   status?: $Enums.DocumentStatus
   mode: $Enums.ProcessingMode
   combinedResult?: string | null
+  errorMessage?: string | null
+  comment?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   documents?: Prisma.DocumentUncheckedCreateNestedManyWithoutBatchInput
@@ -475,6 +531,8 @@ export type DocumentBatchUpdateWithoutJobsInput = {
   status?: Prisma.EnumDocumentStatusFieldUpdateOperationsInput | $Enums.DocumentStatus
   mode?: Prisma.EnumProcessingModeFieldUpdateOperationsInput | $Enums.ProcessingMode
   combinedResult?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   documents?: Prisma.DocumentUpdateManyWithoutBatchNestedInput
@@ -485,6 +543,8 @@ export type DocumentBatchUncheckedUpdateWithoutJobsInput = {
   status?: Prisma.EnumDocumentStatusFieldUpdateOperationsInput | $Enums.DocumentStatus
   mode?: Prisma.EnumProcessingModeFieldUpdateOperationsInput | $Enums.ProcessingMode
   combinedResult?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   documents?: Prisma.DocumentUncheckedUpdateManyWithoutBatchNestedInput
@@ -535,6 +595,8 @@ export type DocumentBatchSelect<ExtArgs extends runtime.Types.Extensions.Interna
   status?: boolean
   mode?: boolean
   combinedResult?: boolean
+  errorMessage?: boolean
+  comment?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   documents?: boolean | Prisma.DocumentBatch$documentsArgs<ExtArgs>
@@ -547,6 +609,8 @@ export type DocumentBatchSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   status?: boolean
   mode?: boolean
   combinedResult?: boolean
+  errorMessage?: boolean
+  comment?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["documentBatch"]>
@@ -556,6 +620,8 @@ export type DocumentBatchSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   status?: boolean
   mode?: boolean
   combinedResult?: boolean
+  errorMessage?: boolean
+  comment?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["documentBatch"]>
@@ -565,11 +631,13 @@ export type DocumentBatchSelectScalar = {
   status?: boolean
   mode?: boolean
   combinedResult?: boolean
+  errorMessage?: boolean
+  comment?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type DocumentBatchOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "status" | "mode" | "combinedResult" | "createdAt" | "updatedAt", ExtArgs["result"]["documentBatch"]>
+export type DocumentBatchOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "status" | "mode" | "combinedResult" | "errorMessage" | "comment" | "createdAt" | "updatedAt", ExtArgs["result"]["documentBatch"]>
 export type DocumentBatchInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   documents?: boolean | Prisma.DocumentBatch$documentsArgs<ExtArgs>
   jobs?: boolean | Prisma.DocumentBatch$jobsArgs<ExtArgs>
@@ -589,6 +657,8 @@ export type $DocumentBatchPayload<ExtArgs extends runtime.Types.Extensions.Inter
     status: $Enums.DocumentStatus
     mode: $Enums.ProcessingMode
     combinedResult: string | null
+    errorMessage: string | null
+    comment: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["documentBatch"]>
@@ -1020,6 +1090,8 @@ export interface DocumentBatchFieldRefs {
   readonly status: Prisma.FieldRef<"DocumentBatch", 'DocumentStatus'>
   readonly mode: Prisma.FieldRef<"DocumentBatch", 'ProcessingMode'>
   readonly combinedResult: Prisma.FieldRef<"DocumentBatch", 'String'>
+  readonly errorMessage: Prisma.FieldRef<"DocumentBatch", 'String'>
+  readonly comment: Prisma.FieldRef<"DocumentBatch", 'String'>
   readonly createdAt: Prisma.FieldRef<"DocumentBatch", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"DocumentBatch", 'DateTime'>
 }

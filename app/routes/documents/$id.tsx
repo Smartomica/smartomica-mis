@@ -8,6 +8,8 @@ import { DocumentStatus } from "~/generated/client/enums";
 import { getOriginalDocumentPreviewUrl } from "~/lib/services/document.server";
 import { getFileUrl } from "~/lib/storage/minio.server";
 import { EyeOpenIcon, DownloadIcon, LayersIcon } from "@radix-ui/react-icons";
+import { useEffect, useRef } from "react";
+import { toast } from "sonner";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await requireUser(request);
@@ -60,6 +62,9 @@ export async function loader({ request, params }: Route.LoaderArgs) {
       document.batch.jobs[0].errorMessage || "Batch processing failed";
   }
 
+  const error = document.batch?.errorMessage;
+  const comment = document.batch?.comment;
+
   const siblings = await Promise.all(
     (document.batch?.documents || []).map(async (doc) => {
       const isDoc =
@@ -77,11 +82,31 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
   const fileUrl = await getOriginalDocumentPreviewUrl(document);
 
-  return { user, document, fileUrl, siblings };
+  return { user, document, fileUrl, siblings, comment, error };
 }
 
 export default function DocumentDetails() {
-  const { user, document, fileUrl, siblings } = useLoaderData<typeof loader>();
+  const { user, document, fileUrl, siblings, comment, error } =
+    useLoaderData<typeof loader>();
+  const shownLastComment = useRef("");
+
+  useEffect(
+    function () {
+      if (!error) return;
+      console.log("Err toast");
+      toast.error(error);
+    },
+    [error],
+  );
+
+  useEffect(
+    function () {
+      if (!comment || shownLastComment.current === comment) return;
+      shownLastComment.current = comment;
+      toast.info(comment);
+    },
+    [comment],
+  );
 
   const getStatusBadge = (status: string) => {
     switch (status) {

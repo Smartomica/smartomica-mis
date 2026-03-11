@@ -94,6 +94,10 @@ model DocumentBatch {
   documents Document[]
   jobs      ProcessingJob[]
 
+  // Error handling
+  errorMessage String?
+  comment      String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

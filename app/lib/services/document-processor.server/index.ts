@@ -26,7 +26,10 @@ import { resolveMisPrompt } from "./resolveMisPrompt";
 import { estimateTokensNeeded, estimateTokensUsed } from "./tokens";
 import { clearMarkdownAroundJson, type LLMResult } from "./clearMarkdown";
 import { extractText } from "./extractTextWihLLM";
-import { saveDocumentOcrMeta } from "../document.server";
+import {
+  saveDocumentBatchOcrMeta,
+  saveDocumentOcrMeta,
+} from "../document.server";
 
 export async function processDocument({
   files,
@@ -251,6 +254,7 @@ async function processBatchAsync(
       const generatedContentString =
         response.choices[0]?.message?.content || "";
       const generatedContent = clearMarkdownAroundJson(generatedContentString);
+      await saveDocumentBatchOcrMeta(batch, generatedContent);
 
       const processingTime = Date.now() - startTime;
       const tokensUsed = estimateTokensUsed(

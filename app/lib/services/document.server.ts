@@ -1,5 +1,8 @@
 import { parse } from "path";
-import type { DocumentModel } from "~/generated/client/models";
+import type {
+  DocumentBatchModel,
+  DocumentModel,
+} from "~/generated/client/models";
 import { getFileUrl } from "~/lib/storage/minio.server";
 import type { LLMResult } from "./document-processor.server/clearMarkdown";
 import { prisma } from "../db/client";
@@ -21,7 +24,20 @@ export async function saveDocumentOcrMeta(
     data: {
       sourceLanguage: ocr.lng || document.sourceLanguage,
       errorMessage: ocr.error || document.errorMessage,
-      ocrComment: ocr.comment,
+      ocrComment: ocr.comment || document.ocrComment,
+    },
+  });
+}
+
+export async function saveDocumentBatchOcrMeta(
+  batch: DocumentBatchModel,
+  ocr: LLMResult,
+) {
+  await prisma.documentBatch.update({
+    where: { id: batch.id },
+    data: {
+      errorMessage: ocr.error || batch.errorMessage,
+      comment: ocr.comment || batch.comment,
     },
   });
 }
