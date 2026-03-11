@@ -1,6 +1,7 @@
 // @ts-expect-error: PWA bollocks
 import { pwaAssetsHead } from "virtual:pwa-assets/head";
 import { PWAManifest } from "./PWAManifest";
+import type { ComponentProps } from "react";
 
 export function PWAAssets() {
   return (
@@ -8,7 +9,7 @@ export function PWAAssets() {
       {pwaAssetsHead.themeColor ? (
         <meta name="theme-color" content={pwaAssetsHead.themeColor.content} />
       ) : null}
-      {pwaAssetsHead.links.map(({ href, ...link }) => (
+      {pwaAssetsHead.links.map(({ href, ...link }: ComponentProps<"link">) => (
         <link key={href} href={href} {...link} />
       ))}
       <PWAManifest />
