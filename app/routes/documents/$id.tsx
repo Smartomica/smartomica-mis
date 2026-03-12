@@ -249,15 +249,17 @@ export default function DocumentDetails() {
                   <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
                     {t("documents.details.content")}
                   </h3>
-                  <button
-                    onClick={handleOpenComment}
-                    className="cursor-pointer flex items-center"
-                  >
-                    <BookmarkIcon />
-                    <span className="ms-4 text-sm">
-                      {t("documents.details.comment")}
-                    </span>
-                  </button>
+                  {comment && (
+                    <button
+                      onClick={handleOpenComment}
+                      className="cursor-pointer flex items-center"
+                    >
+                      <BookmarkIcon />
+                      <span className="ms-2 text-sm">
+                        {t("documents.details.comment")}
+                      </span>
+                    </button>
+                  )}
                 </div>
                 <div className="border-t border-gray-200 dark:border-gray-700 px-4 py-5 sm:px-6">
                   <div>
