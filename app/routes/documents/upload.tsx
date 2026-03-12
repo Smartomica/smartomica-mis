@@ -19,7 +19,7 @@ import { ProcessingMode } from "~/generated/client/enums";
 import type { FormUploadFile } from "~/hooks/useFormUpload";
 import { UpdateIcon } from "@radix-ui/react-icons";
 import { Lang } from "~/lib/services/document-processor.server/const";
-import { toast } from "sonner";
+import { toast } from "~/lib/toast.client";
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await requireUser(request);

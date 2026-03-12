@@ -2,7 +2,7 @@ import { startTransition, StrictMode } from "react";
 import { hydrateRoot } from "react-dom/client";
 import type { ClientOnErrorFunction } from "react-router";
 import { HydratedRouter } from "react-router/dom";
-import { toast } from "sonner";
+import { toast } from "~/lib/toast.client";
 
 const onError: ClientOnErrorFunction = (
   error,

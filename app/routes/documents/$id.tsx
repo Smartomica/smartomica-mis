@@ -14,7 +14,7 @@ import {
   BookmarkIcon,
 } from "@radix-ui/react-icons";
 import { useEffect, useRef } from "react";
-import { toast } from "sonner";
+import { toast } from "~/lib/toast.client";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await requireUser(request);
