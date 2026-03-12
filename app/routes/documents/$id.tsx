@@ -7,7 +7,12 @@ import { t } from "~/lib/i18n/i18n";
 import { DocumentStatus } from "~/generated/client/enums";
 import { getOriginalDocumentPreviewUrl } from "~/lib/services/document.server";
 import { getFileUrl } from "~/lib/storage/minio.server";
-import { EyeOpenIcon, DownloadIcon, LayersIcon } from "@radix-ui/react-icons";
+import {
+  EyeOpenIcon,
+  DownloadIcon,
+  LayersIcon,
+  BookmarkIcon,
+} from "@radix-ui/react-icons";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
@@ -129,6 +134,10 @@ export default function DocumentDetails() {
       ? siblings.map((s) => s.originalName).join(", ")
       : document.originalName;
 
+  function handleOpenComment() {
+    toast.info(comment);
+  }
+
   return (
     <Layout user={user}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -236,10 +245,19 @@ export default function DocumentDetails() {
 
             {document.translatedText && (
               <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-lg">
-                <div className="px-4 py-5 sm:px-6">
+                <div className="flex justify-between px-4 py-5 sm:px-6 w-full">
                   <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">
                     {t("documents.details.content")}
                   </h3>
+                  <button
+                    onClick={handleOpenComment}
+                    className="cursor-pointer flex items-center"
+                  >
+                    <BookmarkIcon />
+                    <span className="text-sm">
+                      {t("documents.details.comment")}
+                    </span>
+                  </button>
                 </div>
                 <div className="border-t border-gray-200 dark:border-gray-700 px-4 py-5 sm:px-6">
                   <div>

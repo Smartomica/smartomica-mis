@@ -197,7 +197,8 @@
       "subtitle": "Details and content of the document",
       "content": "Document Content",
       "translated": "Translated Text",
-      "original": "Extracted Original Text"
+      "original": "Extracted Original Text",
+      "comment": "Show comment"
     }
   },
   "languages": {
