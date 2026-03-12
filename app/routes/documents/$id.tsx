@@ -254,7 +254,7 @@ export default function DocumentDetails() {
                     className="cursor-pointer flex items-center"
                   >
                     <BookmarkIcon />
-                    <span className="text-sm">
+                    <span className="ms-4 text-sm">
                       {t("documents.details.comment")}
                     </span>
                   </button>
