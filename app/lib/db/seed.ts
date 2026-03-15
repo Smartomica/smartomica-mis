@@ -8,10 +8,9 @@ export const DEMO_EMAIL = "demo@smartomica.com";
 export const CLEVEL_EMAIL = "clevel@smartomica.com";
 export const ELENA_Z = "elena.zelentsova@smartomica.com";
 export const MARK_S = "m.szczukowski@emasmed.com";
-export const OLGA_P = "";
+export const OLGA_P = "oplotkina75@gmail.com";
 
 export async function seedDatabase() {
-  console.log("DB url:", DATABASE_URL);
   try {
     // Create demo admin user
     const adminUser = await prisma.user.upsert({
