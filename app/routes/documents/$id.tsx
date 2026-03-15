@@ -1,4 +1,4 @@
-import { Link, useLoaderData, NavLink } from "react-router";
+import { Link, useLoaderData } from "react-router";
 import type { Route } from "./+types/$id";
 import { requireUser } from "~/lib/auth/session.server";
 import { Layout } from "~/components/Layout";

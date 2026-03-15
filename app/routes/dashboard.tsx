@@ -1,11 +1,17 @@
-import { Link, useLoaderData, Form, useActionData, redirect } from "react-router";
-import type { Route } from "./+types/dashboard";
-import { requireUser } from "~/lib/auth/session.server";
+import {
+  CheckCircledIcon,
+  FileTextIcon,
+  PlusIcon,
+  TimerIcon,
+  UploadIcon,
+} from "@radix-ui/react-icons";
+import { Form, Link, useActionData, useLoaderData } from "react-router";
 import { Layout } from "~/components/Layout";
-import { t } from "~/lib/i18n/i18n";
-import { prisma } from "~/lib/db/client";
 import { DocumentStatus } from "~/generated/client/enums";
-import { FileTextIcon, TimerIcon, CheckCircledIcon, UploadIcon, PlusIcon } from "@radix-ui/react-icons";
+import { requireUser } from "~/lib/auth/session.server";
+import { prisma } from "~/lib/db/client";
+import { t } from "~/lib/i18n/i18n";
+import type { Route } from "./+types/dashboard";
 
 export async function action({ request }: Route.ActionArgs) {
   const user = await requireUser(request);
@@ -22,7 +28,6 @@ export async function action({ request }: Route.ActionArgs) {
 
   return null;
 }
-
 
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await requireUser(request);
@@ -95,7 +100,10 @@ export default function Dashboard() {
           <div className="mb-8 rounded-md bg-green-50 dark:bg-green-900/30 p-4">
             <div className="flex">
               <div className="shrink-0">
-                <CheckCircledIcon className="h-5 w-5 text-green-400" aria-hidden="true" />
+                <CheckCircledIcon
+                  className="h-5 w-5 text-green-400"
+                  aria-hidden="true"
+                />
               </div>
               <div className="ml-3">
                 <p className="text-sm font-medium text-green-800 dark:text-green-200">
@@ -107,7 +115,6 @@ export default function Dashboard() {
         )}
 
         <div className="mb-8">
-
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             {t("dashboard.welcome", { name: user.name })}
           </h1>
@@ -118,7 +125,6 @@ export default function Dashboard() {
 
         {/* Stats */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-3 mb-8">
-
           <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
             <div className="p-5">
               <div className="flex items-center">
@@ -191,7 +197,9 @@ export default function Dashboard() {
                   </h3>
                   <div className="mt-2 max-w-xl text-sm text-gray-500 dark:text-gray-400">
                     <p>
-                      You have previously consented to data collection for service improvement. You can revoke this consent at any time.
+                      You have previously consented to data collection for
+                      service improvement. You can revoke this consent at any
+                      time.
                     </p>
                   </div>
                 </div>
