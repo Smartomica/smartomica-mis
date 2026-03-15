@@ -7,6 +7,7 @@ import {
   DEMO_EMAIL,
   ELENA_Z,
   MARK_S,
+  OLGA_P,
 } from "~/lib/db/seed";
 
 export interface User {
@@ -26,6 +27,7 @@ const DEMO_PASSWORDS = {
   [CLEVEL_EMAIL]: "demo123demo123",
   [ELENA_Z]: "EQ!kpQFzKXK8Dv4FzAso7hMd",
   [MARK_S]: "mcAcd_9sp*vJnn-MMrt7WQuP",
+  [OLGA_P]: "yw.zojEAKANKJPVo7w_DrtFR",
 };
 
 export const sessionStorage = createCookieSessionStorage({
