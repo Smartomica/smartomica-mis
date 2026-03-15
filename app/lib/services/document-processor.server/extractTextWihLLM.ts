@@ -1,22 +1,41 @@
 import type OpenAI from "openai";
-import { OPENROUTER_MODEL_VISION } from "~/env.server";
-import { resolveMisPrompt } from "./resolveMisPrompt";
+import type { ChatCompletionContentPart } from "openai/resources/index.mjs";
 import { ProcessingMode } from "~/generated/client/enums";
-import { Lang } from "./const";
+import { LOCAL_MODE, MODEL_VISION } from "~/lib/services/openAi/config";
 import { clearMarkdownAroundJson, type LLMResult } from "./clearMarkdown";
+import { Lang } from "./const";
+import { resolveMisPrompt } from "./resolveMisPrompt";
 
 export async function extractText(
   openai: OpenAI,
   ...imageUrls: string[]
 ): Promise<LLMResult> {
-  const imageMessages = imageUrls.map(function (imageUrl) {
-    return {
-      type: "image_url",
-      image_url: {
-        url: imageUrl,
-      },
-    } as const;
-  });
+  const imageMessages = imageUrls.map(
+    function (imageUrl): ChatCompletionContentPart {
+      return {
+        type: "image_url",
+        image_url: {
+          url: imageUrl,
+        },
+      };
+    },
+  );
+
+  const imageBlobMessages = !LOCAL_MODE
+    ? []
+    : await Promise.all(
+        imageUrls.map(
+          async function (imageUrl): Promise<ChatCompletionContentPart> {
+            const imageBase64Response = await fetch(imageUrl);
+            const imageBlob = await imageBase64Response.blob();
+            const imageBase64 = await blobToBase64(imageBlob);
+            return {
+              type: "image_url",
+              image_url: { url: imageBase64 },
+            };
+          },
+        ),
+      );
 
   const ocrPrompt = await resolveMisPrompt(
     ProcessingMode.OCR,
@@ -25,16 +44,24 @@ export async function extractText(
   );
 
   const response = await openai.chat.completions.create({
-    model: OPENROUTER_MODEL_VISION,
+    model: MODEL_VISION,
     messages: [
       ...ocrPrompt,
       {
         role: "user",
-        content: imageMessages,
+        content: LOCAL_MODE ? imageBlobMessages : imageMessages,
       },
     ],
     max_tokens: 30 * 1e3,
   });
 
+  console.log({ response });
   return clearMarkdownAroundJson(response.choices[0]?.message?.content || "");
+}
+
+async function blobToBase64(blob: Blob): Promise<string> {
+  const arrayBuffer = await blob.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+  const base64String = buffer.toString("base64");
+  return `data:${blob.type};base64,${base64String}`;
 }

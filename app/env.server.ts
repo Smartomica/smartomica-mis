@@ -7,10 +7,14 @@ function getEnv(name: string): string {
   }
   return value;
 }
+export const LOCAL_MODE = getEnv("LOCAL_MODE")?.toLowerCase() === "true";
+
+export const OLLAMA_API_KEY = getEnv("OLLAMA_API_KEY");
+export const OLLAMA_MODEL_GENERAL = getEnv("OLLAMA_MODEL_GENERAL");
+export const OLLAMA_MODEL_VISION = getEnv("OLLAMA_MODEL_VISION");
 
 export const OPENROUTER_MODEL_GENERAL = getEnv("OPENROUTER_MODEL_GENERAL");
 export const OPENROUTER_MODEL_VISION = getEnv("OPENROUTER_MODEL_VISION");
-export const LOCAL_MODE = getEnv("LOCAL_MODE")?.toLowerCase() === "true";
 
 export const DATABASE_URL = getEnv("DATABASE_URL");
 export const UTILS_BASE_URL = getEnv("UTILS_BASE_URL");

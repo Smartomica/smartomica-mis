@@ -1,22 +1,14 @@
-import { LangfuseAPIClient } from "@langfuse/core";
 import { ChatPromptClient, LangfuseClient } from "@langfuse/client";
+import { LangfuseAPIClient } from "@langfuse/core";
 import { observeOpenAI } from "@langfuse/openai";
 import OpenAI from "openai";
 import {
   LANGFUSE_BASE_URL,
   LANGFUSE_PUBLIC_KEY,
   LANGFUSE_SECRET_KEY,
-  OPENROUTER_API_KEY,
 } from "~/env.server";
 import type { SimplifiedChatMessage } from "./services/document-processor.server/const";
-
-export function getLangfuseSDK() {
-  return new LangfuseClient({
-    baseUrl: LANGFUSE_BASE_URL,
-    publicKey: LANGFUSE_PUBLIC_KEY,
-    secretKey: LANGFUSE_SECRET_KEY,
-  });
-}
+import { BASE_URL, LLM_API_KEY, LOCAL_MODE } from "./services/openAi/config";
 
 export function getOpenAI({
   sessionId,
@@ -27,8 +19,10 @@ export function getOpenAI({
 }) {
   const openai = observeOpenAI(
     new OpenAI({
-      baseURL: "https://openrouter.ai/api/v1",
-      apiKey: OPENROUTER_API_KEY,
+      baseURL: BASE_URL,
+      apiKey: LLM_API_KEY,
+      timeout: LOCAL_MODE ? 60 * 60 * 1e3 : undefined,
+      maxRetries: LOCAL_MODE ? 1 : undefined,
     }),
     {
       generationName,
@@ -37,20 +31,6 @@ export function getOpenAI({
   );
   return openai;
 }
-
-function getLangfuseAPI() {
-  return new LangfuseAPIClient({
-    environment: "production",
-    baseUrl: LANGFUSE_BASE_URL,
-    username: LANGFUSE_PUBLIC_KEY,
-    password: LANGFUSE_SECRET_KEY,
-  });
-}
-
-export const listPrompts = (() => {
-  const api = getLangfuseAPI();
-  return api.prompts.list.bind(api.prompts);
-})();
 
 export function compileChatPrompt(
   prompt: ChatPromptClient,
@@ -68,3 +48,25 @@ export function compileChatPrompt(
 
   return compiledPrompt;
 }
+
+export function getLangfuseSDK() {
+  return new LangfuseClient({
+    baseUrl: LANGFUSE_BASE_URL,
+    publicKey: LANGFUSE_PUBLIC_KEY,
+    secretKey: LANGFUSE_SECRET_KEY,
+  });
+}
+
+function getLangfuseAPI() {
+  return new LangfuseAPIClient({
+    environment: "production",
+    baseUrl: LANGFUSE_BASE_URL,
+    username: LANGFUSE_PUBLIC_KEY,
+    password: LANGFUSE_SECRET_KEY,
+  });
+}
+
+export const listPrompts = (() => {
+  const api = getLangfuseAPI();
+  return api.prompts.list.bind(api.prompts);
+})();
