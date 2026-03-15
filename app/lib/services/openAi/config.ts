@@ -7,18 +7,18 @@ import {
 } from "~/env.server";
 
 const OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
-const OLLAMA_BASE_URL = "https://brain-ui.smartomica.org/api/";
+const OLLAMA_BASE_URL = "https://brain-ui.smartomica.org/api";
 
-export const LOCAL_MODE = true;
+export const LOCAL_LLM_MODE = true;
 
-export const LLM_API_KEY = LOCAL_MODE ? OLLAMA_API_KEY : OPENROUTER_API_KEY;
+export const LLM_API_KEY = LOCAL_LLM_MODE ? OLLAMA_API_KEY : OPENROUTER_API_KEY;
 
-export const MODEL_GENERAL = LOCAL_MODE
+export const MODEL_GENERAL = LOCAL_LLM_MODE
   ? OLLAMA_MODEL_GENERAL
   : OPENROUTER_MODEL_GENERAL;
 
-export const MODEL_VISION = LOCAL_MODE
+export const MODEL_VISION = LOCAL_LLM_MODE
   ? OLLAMA_MODEL_VISION
   : OPENROUTER_MODEL_GENERAL;
 
-export const BASE_URL = LOCAL_MODE ? OLLAMA_BASE_URL : OPENROUTER_BASE_URL;
+export const BASE_URL = LOCAL_LLM_MODE ? OLLAMA_BASE_URL : OPENROUTER_BASE_URL;

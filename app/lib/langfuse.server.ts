@@ -8,7 +8,11 @@ import {
   LANGFUSE_SECRET_KEY,
 } from "~/env.server";
 import type { SimplifiedChatMessage } from "./services/document-processor.server/const";
-import { BASE_URL, LLM_API_KEY, LOCAL_MODE } from "./services/openAi/config";
+import {
+  BASE_URL,
+  LLM_API_KEY,
+  LOCAL_LLM_MODE,
+} from "./services/openAi/config";
 
 export function getOpenAI({
   sessionId,
@@ -21,8 +25,8 @@ export function getOpenAI({
     new OpenAI({
       baseURL: BASE_URL,
       apiKey: LLM_API_KEY,
-      timeout: LOCAL_MODE ? 60 * 60 * 1e3 : undefined,
-      maxRetries: LOCAL_MODE ? 1 : undefined,
+      timeout: LOCAL_LLM_MODE ? 60 * 60 * 1e3 : undefined,
+      maxRetries: LOCAL_LLM_MODE ? 1 : undefined,
     }),
     {
       generationName,

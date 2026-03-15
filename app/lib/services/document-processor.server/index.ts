@@ -1,35 +1,36 @@
-import WordExtractor from "word-extractor";
 import { startActiveObservation } from "@langfuse/tracing";
 import { randomUUID } from "crypto";
 import mammoth from "mammoth";
 import { dirname, join } from "path";
-import { LOCAL_MODE, OPENROUTER_MODEL_GENERAL } from "~/env.server";
+import WordExtractor from "word-extractor";
+import { LOCAL_MODE } from "~/env.server";
 import { JobType, ProcessingMode } from "~/generated/client/enums";
 import { prisma, type Document, type DocumentStatus } from "~/lib/db/client";
 import { NeverError } from "~/lib/error";
 import { getOpenAI } from "~/lib/langfuse.server";
 import {
   getDirectPDFText,
+  isRequiresOCR,
   ocrTextFromImage,
   ocrTextFromPDF,
   pdfToImages,
-  isRequiresOCR,
 } from "~/lib/services/ocr.server";
+import { MODEL_GENERAL } from "~/lib/services/openAi/config";
 import { getFileUrl } from "~/lib/storage/minio.server";
-import {
-  Lang,
-  ALL_LANGUAGES,
-  PAGES_SUBDIRECTORY,
-  type ProcessDocumentArgs,
-} from "./const";
-import { resolveMisPrompt } from "./resolveMisPrompt";
-import { estimateTokensNeeded, estimateTokensUsed } from "./tokens";
-import { clearMarkdownAroundJson, type LLMResult } from "./clearMarkdown";
-import { extractText } from "./extractTextWihLLM";
 import {
   saveDocumentBatchOcrMeta,
   saveDocumentOcrMeta,
 } from "../document.server";
+import { clearMarkdownAroundJson, type LLMResult } from "./clearMarkdown";
+import {
+  ALL_LANGUAGES,
+  Lang,
+  PAGES_SUBDIRECTORY,
+  type ProcessDocumentArgs,
+} from "./const";
+import { extractText } from "./extractTextWihLLM";
+import { resolveMisPrompt } from "./resolveMisPrompt";
+import { estimateTokensNeeded, estimateTokensUsed } from "./tokens";
 
 export async function processDocument({
   files,
@@ -245,7 +246,7 @@ async function processBatchAsync(
 
       // 3. Generate combined output
       const response = await openai.chat.completions.create({
-        model: OPENROUTER_MODEL_GENERAL,
+        model: MODEL_GENERAL,
         messages,
         temperature: 0.3,
         max_tokens: 40 * 1e3,

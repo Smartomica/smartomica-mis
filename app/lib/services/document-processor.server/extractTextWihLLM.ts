@@ -1,7 +1,7 @@
 import type OpenAI from "openai";
 import type { ChatCompletionContentPart } from "openai/resources/index.mjs";
 import { ProcessingMode } from "~/generated/client/enums";
-import { LOCAL_MODE, MODEL_VISION } from "~/lib/services/openAi/config";
+import { LOCAL_LLM_MODE, MODEL_VISION } from "~/lib/services/openAi/config";
 import { clearMarkdownAroundJson, type LLMResult } from "./clearMarkdown";
 import { Lang } from "./const";
 import { resolveMisPrompt } from "./resolveMisPrompt";
@@ -21,7 +21,7 @@ export async function extractText(
     },
   );
 
-  const imageBlobMessages = !LOCAL_MODE
+  const imageBlobMessages = !LOCAL_LLM_MODE
     ? []
     : await Promise.all(
         imageUrls.map(
@@ -49,7 +49,7 @@ export async function extractText(
       ...ocrPrompt,
       {
         role: "user",
-        content: LOCAL_MODE ? imageBlobMessages : imageMessages,
+        content: LOCAL_LLM_MODE ? imageBlobMessages : imageMessages,
       },
     ],
     max_tokens: 30 * 1e3,
