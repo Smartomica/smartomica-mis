@@ -15,7 +15,7 @@ import {
   ocrTextFromPDF,
   pdfToImages,
 } from "~/lib/services/ocr.server";
-import { MODEL_GENERAL } from "~/lib/services/openAi/config";
+import { MODEL_GENERAL } from "~/lib/openAi/config.server";
 import { getFileUrl } from "~/lib/storage/minio.server";
 import {
   saveDocumentBatchOcrMeta,
@@ -274,16 +274,13 @@ async function processBatchAsync(
       });
 
       // Also update individual documents to COMPLETED, storing the same generated content?
-      // The prompt says "produce ONE translation/summary".
       // We can store it in the batch.
       // Individual documents might just stay as COMPLETED.
-      // Or we can copy the result to each document just in case the UI expects it there?
-      // Let's copy it to make sure the UI works if it looks at individual documents.
       await prisma.document.updateMany({
         where: { batchId },
         data: {
           status: "COMPLETED",
-          translatedText: generatedContent.text, // Or maybe "See Batch Result"? Let's verify what UI expects.
+          translatedText: generatedContent.text, // Or maybe "See Batch Result"?
           tokensUsed: Math.ceil(tokensUsed / documents.length), // Distribute tokens?
           processingTimeMs: Math.ceil(processingTime / documents.length),
           completedAt: new Date(),

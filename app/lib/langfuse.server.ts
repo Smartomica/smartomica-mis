@@ -7,12 +7,12 @@ import {
   LANGFUSE_PUBLIC_KEY,
   LANGFUSE_SECRET_KEY,
 } from "~/env.server";
-import type { SimplifiedChatMessage } from "./services/document-processor.server/const";
 import {
   BASE_URL,
   LLM_API_KEY,
   LOCAL_LLM_MODE,
-} from "./services/openAi/config";
+} from "~/lib/openAi/config.server";
+import type { SimplifiedChatMessage } from "~/lib/services/document-processor.server/const";
 
 export function getOpenAI({
   sessionId,

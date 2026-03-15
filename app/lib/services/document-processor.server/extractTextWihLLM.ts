@@ -1,7 +1,7 @@
 import type OpenAI from "openai";
 import type { ChatCompletionContentPart } from "openai/resources/index.mjs";
 import { ProcessingMode } from "~/generated/client/enums";
-import { LOCAL_LLM_MODE, MODEL_VISION } from "~/lib/services/openAi/config";
+import { LOCAL_LLM_MODE, MODEL_VISION } from "~/lib/openAi/config.server";
 import { clearMarkdownAroundJson, type LLMResult } from "./clearMarkdown";
 import { Lang } from "./const";
 import { resolveMisPrompt } from "./resolveMisPrompt";
